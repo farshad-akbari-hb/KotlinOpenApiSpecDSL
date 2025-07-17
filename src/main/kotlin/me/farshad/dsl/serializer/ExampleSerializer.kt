@@ -1,4 +1,4 @@
-package me.farshad.dsl
+package me.farshad.dsl.serializer
 
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -10,6 +10,7 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 import kotlinx.serialization.json.*
+import me.farshad.dsl.spec.Example
 
 @Serializer(forClass = Example::class)
 object ExampleSerializer : KSerializer<Example> {
@@ -28,7 +29,7 @@ object ExampleSerializer : KSerializer<Example> {
                 @Suppress("UNCHECKED_CAST")
                 val serializer = encoder.serializersModule.getContextual(JsonElement::class) as? KSerializer<JsonElement> 
                     ?: JsonElement.serializer()
-                encodeSerializableElement(descriptor, 2, serializer, it) 
+                encodeSerializableElement(descriptor, 2, serializer, it)
             }
             value.externalValue?.let { encodeStringElement(descriptor, 3, it) }
         }

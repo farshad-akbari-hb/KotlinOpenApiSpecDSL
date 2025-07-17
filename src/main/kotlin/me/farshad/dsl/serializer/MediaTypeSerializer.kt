@@ -1,4 +1,4 @@
-package me.farshad.dsl
+package me.farshad.dsl.serializer
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.MapSerializer
@@ -12,6 +12,9 @@ import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.serializer
+import me.farshad.dsl.spec.Example
+import me.farshad.dsl.spec.MediaType
+import me.farshad.dsl.spec.Schema
 
 object MediaTypeSerializer : KSerializer<MediaType> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("MediaType") {
@@ -27,10 +30,11 @@ object MediaTypeSerializer : KSerializer<MediaType> {
                 @Suppress("UNCHECKED_CAST")
                 val serializer = encoder.serializersModule.getContextual(JsonElement::class) as? KSerializer<JsonElement> 
                     ?: JsonElement.serializer()
-                encodeSerializableElement(descriptor, 1, serializer, it) 
+                encodeSerializableElement(descriptor, 1, serializer, it)
             }
             value.examples?.let { examplesMap ->
-                encodeSerializableElement(descriptor, 2, MapSerializer(
+                encodeSerializableElement(
+                    descriptor, 2, MapSerializer(
                     serializer<String>(),
                     Example.serializer()
                 ), examplesMap)
@@ -53,7 +57,8 @@ object MediaTypeSerializer : KSerializer<MediaType> {
                             ?: JsonElement.serializer()
                         example = decodeSerializableElement(descriptor, 1, serializer)
                     }
-                    2 -> examples = decodeSerializableElement(descriptor, 2, MapSerializer(
+                    2 -> examples = decodeSerializableElement(
+                        descriptor, 2, MapSerializer(
                         serializer<String>(),
                         Example.serializer()
                     ))

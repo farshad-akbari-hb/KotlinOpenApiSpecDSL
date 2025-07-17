@@ -1,9 +1,35 @@
-package me.farshad.dsl
+package me.farshad.dsl.builder
 
 
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import com.charleskorn.kaml.*
+import me.farshad.dsl.spec.Components
+import me.farshad.dsl.spec.Contact
+import me.farshad.dsl.spec.Discriminator
+import me.farshad.dsl.spec.Example
+import me.farshad.dsl.spec.Info
+import me.farshad.dsl.spec.License
+import me.farshad.dsl.spec.MediaType
+import me.farshad.dsl.spec.OpenApiSpec
+import me.farshad.dsl.spec.Operation
+import me.farshad.dsl.spec.Parameter
+import me.farshad.dsl.spec.ParameterLocation
+import me.farshad.dsl.spec.PathItem
+import me.farshad.dsl.spec.PropertyType
+import me.farshad.dsl.spec.RequestBody
+import me.farshad.dsl.spec.Response
+import me.farshad.dsl.spec.Schema
+import me.farshad.dsl.spec.SchemaFormat
+import me.farshad.dsl.spec.SchemaReference
+import me.farshad.dsl.spec.SchemaType
+import me.farshad.dsl.spec.SecurityScheme
+import me.farshad.dsl.spec.Server
+import me.farshad.dsl.annotation.PropertyDescription
+import me.farshad.dsl.annotation.SchemaDescription
+import me.farshad.dsl.spec.inlineSchema
+import me.farshad.dsl.spec.schemaRef
+import me.farshad.dsl.serializer.yamlSerializersModule
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.declaredMemberProperties

@@ -1,11 +1,15 @@
-package me.farshad.dsl
+package me.farshad.dsl.spec
 
-import kotlinx.serialization.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import me.farshad.dsl.builder.AllOfBuilder
+import me.farshad.dsl.builder.OneOfBuilder
+import me.farshad.dsl.builder.SchemaBuilder
 import kotlin.reflect.KClass
 
 /**
@@ -66,7 +70,7 @@ fun schemaRef(path: String): SchemaReference = SchemaReference.Ref(path)
 /**
  * Creates a schema reference from a Kotlin class
  */
-fun <T : Any> schemaRef(kClass: KClass<T>): SchemaReference = 
+fun <T : Any> schemaRef(kClass: KClass<T>): SchemaReference =
     SchemaReference.Ref("#/components/schemas/${kClass.simpleName}")
 
 /**
@@ -77,7 +81,7 @@ inline fun <reified T : Any> schemaRef(): SchemaReference = schemaRef(T::class)
 /**
  * Creates an inline schema reference
  */
-fun inlineSchema(block: SchemaBuilder.() -> Unit): SchemaReference = 
+fun inlineSchema(block: SchemaBuilder.() -> Unit): SchemaReference =
     SchemaReference.Inline(SchemaBuilder().apply(block).build())
 
 // DSL operator overloading for more idiomatic Kotlin

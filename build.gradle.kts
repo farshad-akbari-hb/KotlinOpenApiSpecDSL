@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "2.1.21"
     kotlin("plugin.serialization") version "2.1.21"
+    `maven-publish`
 }
 
 group = "me.farshad"
@@ -28,4 +29,44 @@ tasks.test {
 }
 kotlin {
     jvmToolchain(21)
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+            
+            groupId = project.group.toString()
+            artifactId = "kotlin-openapi-spec-dsl"
+            version = project.version.toString()
+            
+            pom {
+                name.set("Kotlin OpenAPI Spec DSL")
+                description.set("A type-safe Kotlin DSL for generating OpenAPI 3.1.0 specifications")
+                
+                licenses {
+                    license {
+                        name.set("Apache License 2.0")
+                        url.set("https://opensource.org/licenses/Apache-2.0")
+                    }
+                }
+                
+                developers {
+                    developer {
+                        id.set("farshad")
+                        name.set("Farshad Akbari")
+                    }
+                }
+            }
+        }
+    }
+    
+    repositories {
+        mavenLocal()
+    }
 }

@@ -1,4 +1,4 @@
-package me.farshad.dsl
+package me.farshad.dsl.annotation
 
 import kotlin.annotation.AnnotationRetention
 import kotlin.annotation.AnnotationTarget

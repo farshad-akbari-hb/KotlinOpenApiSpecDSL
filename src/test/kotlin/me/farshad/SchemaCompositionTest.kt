@@ -1,12 +1,17 @@
 package me.farshad
 
-import me.farshad.dsl.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlinx.serialization.json.*
 import kotlinx.serialization.Serializable
+import me.farshad.dsl.builder.openApi
+import me.farshad.dsl.builder.toJson
+import me.farshad.dsl.spec.PropertyType
+import me.farshad.dsl.spec.SchemaType
+import me.farshad.dsl.spec.discriminatedUnion
+import me.farshad.dsl.spec.extending
 
 class SchemaCompositionTest {
     

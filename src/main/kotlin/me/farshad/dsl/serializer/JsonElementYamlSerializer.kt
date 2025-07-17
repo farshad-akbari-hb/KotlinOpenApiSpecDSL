@@ -1,6 +1,5 @@
-package me.farshad.dsl
+package me.farshad.dsl.serializer
 
-import com.charleskorn.kaml.YamlConfiguration
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
