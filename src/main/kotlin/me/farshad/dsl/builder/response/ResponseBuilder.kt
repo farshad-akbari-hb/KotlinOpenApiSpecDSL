@@ -1,5 +1,6 @@
 package me.farshad.dsl.builder.response
 
+import me.farshad.dsl.builder.example.ExamplesBuilder
 import me.farshad.dsl.builder.schema.SchemaBuilder
 import me.farshad.dsl.builder.utils.toJsonElement
 import me.farshad.dsl.spec.MediaType

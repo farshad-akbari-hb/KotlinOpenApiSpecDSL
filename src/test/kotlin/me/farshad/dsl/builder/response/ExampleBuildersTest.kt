@@ -1,9 +1,11 @@
+@file:Suppress("ktlint:standard:no-wildcard-imports")
+
 package me.farshad.dsl.builder.response
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
-import me.farshad.dsl.builder.response.ExampleBuilder
-import me.farshad.dsl.builder.response.ExamplesBuilder
+import me.farshad.dsl.builder.example.ExampleBuilder
+import me.farshad.dsl.builder.example.ExamplesBuilder
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

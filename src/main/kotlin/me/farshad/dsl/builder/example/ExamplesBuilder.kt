@@ -1,4 +1,4 @@
-package me.farshad.dsl.builder.response
+package me.farshad.dsl.builder.example
 
 import me.farshad.dsl.builder.utils.toJsonElement
 import me.farshad.dsl.spec.Example

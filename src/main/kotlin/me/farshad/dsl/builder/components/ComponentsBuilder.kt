@@ -2,7 +2,7 @@ package me.farshad.dsl.builder.components
 
 import me.farshad.dsl.annotation.PropertyDescription
 import me.farshad.dsl.annotation.SchemaDescription
-import me.farshad.dsl.builder.response.ExampleBuilder
+import me.farshad.dsl.builder.example.ExampleBuilder
 import me.farshad.dsl.builder.schema.SchemaBuilder
 import me.farshad.dsl.builder.utils.toJsonElement
 import me.farshad.dsl.spec.Components

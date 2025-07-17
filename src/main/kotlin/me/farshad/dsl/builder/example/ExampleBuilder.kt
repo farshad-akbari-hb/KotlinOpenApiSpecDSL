@@ -1,4 +1,4 @@
-package me.farshad.dsl.builder.response
+package me.farshad.dsl.builder.example
 
 import kotlinx.serialization.json.JsonElement
 import me.farshad.dsl.builder.utils.toJsonElement

@@ -1,7 +1,7 @@
 package me.farshad.dsl.builder.schema
 
 import kotlinx.serialization.json.JsonElement
-import me.farshad.dsl.builder.response.ExamplesBuilder
+import me.farshad.dsl.builder.example.ExamplesBuilder
 import me.farshad.dsl.builder.utils.toJsonElement
 import me.farshad.dsl.spec.Discriminator
 import me.farshad.dsl.spec.Example
