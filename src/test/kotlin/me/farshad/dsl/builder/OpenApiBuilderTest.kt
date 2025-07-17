@@ -5,9 +5,11 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlinx.serialization.json.*
-import me.farshad.dsl.builder.openApi
-import me.farshad.dsl.builder.toJson
-import me.farshad.dsl.builder.toYaml
+import me.farshad.dsl.builder.core.openApi
+import me.farshad.dsl.builder.core.toJson
+import me.farshad.dsl.builder.core.toYaml
+import me.farshad.dsl.spec.PropertyType
+import me.farshad.dsl.spec.SchemaType
 
 class OpenApiBuilderTest {
     
@@ -106,9 +108,9 @@ class OpenApiBuilderTest {
             }
             components {
                 schema("User") {
-                    type = me.farshad.dsl.spec.SchemaType.OBJECT
-                    property("id", me.farshad.dsl.spec.PropertyType.INTEGER, true)
-                    property("name", me.farshad.dsl.spec.PropertyType.STRING, true)
+                    type = SchemaType.OBJECT
+                    property("id", PropertyType.INTEGER, true)
+                    property("name", PropertyType.STRING, true)
                 }
                 securityScheme("bearerAuth", "http", "bearer", "JWT")
             }
@@ -162,15 +164,15 @@ class OpenApiBuilderTest {
             }
             components {
                 schema("User") {
-                    type = me.farshad.dsl.spec.SchemaType.OBJECT
-                    property("id", me.farshad.dsl.spec.PropertyType.INTEGER, true)
-                    property("name", me.farshad.dsl.spec.PropertyType.STRING, true)
-                    property("email", me.farshad.dsl.spec.PropertyType.STRING, false)
+                    type = SchemaType.OBJECT
+                    property("id", PropertyType.INTEGER, true)
+                    property("name", PropertyType.STRING, true)
+                    property("email", PropertyType.STRING, false)
                 }
                 schema("UserList") {
-                    type = me.farshad.dsl.spec.SchemaType.ARRAY
+                    type = SchemaType.ARRAY
                     items {
-                        type = me.farshad.dsl.spec.SchemaType.OBJECT
+                        type = SchemaType.OBJECT
                     }
                 }
             }

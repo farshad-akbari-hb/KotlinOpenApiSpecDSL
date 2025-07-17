@@ -1,5 +1,9 @@
 package me.farshad.dsl.builder
 
+import me.farshad.dsl.builder.core.AllOfBuilder
+import me.farshad.dsl.builder.core.AnyOfBuilder
+import me.farshad.dsl.builder.core.OneOfBuilder
+import me.farshad.dsl.builder.schema.SchemaReference
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

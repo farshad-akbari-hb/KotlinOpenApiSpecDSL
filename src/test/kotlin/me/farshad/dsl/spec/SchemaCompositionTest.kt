@@ -6,10 +6,10 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlinx.serialization.json.*
 import kotlinx.serialization.Serializable
-import me.farshad.dsl.builder.openApi
-import me.farshad.dsl.builder.toJson
-import me.farshad.dsl.builder.discriminatedUnion
-import me.farshad.dsl.builder.extending
+import me.farshad.dsl.builder.core.openApi
+import me.farshad.dsl.builder.core.toJson
+import me.farshad.dsl.builder.schema.discriminatedUnion
+import me.farshad.dsl.builder.schema.extending
 
 class SchemaCompositionTest {
     

@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlinx.serialization.json.*
-import me.farshad.dsl.builder.RequestBodyBuilder
+import me.farshad.dsl.builder.core.RequestBodyBuilder
 import me.farshad.dsl.spec.SchemaType
 import kotlinx.serialization.Serializable
 

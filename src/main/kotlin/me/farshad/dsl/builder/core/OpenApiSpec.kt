@@ -1,4 +1,4 @@
-package me.farshad.dsl.builder
+package me.farshad.dsl.builder.core
 
 
 import com.charleskorn.kaml.Yaml
@@ -14,6 +14,9 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
 import me.farshad.dsl.annotation.PropertyDescription
 import me.farshad.dsl.annotation.SchemaDescription
+import me.farshad.dsl.builder.schema.SchemaReference
+import me.farshad.dsl.builder.schema.inlineSchema
+import me.farshad.dsl.builder.schema.schemaRef
 import me.farshad.dsl.serializer.yamlSerializersModule
 import me.farshad.dsl.spec.Components
 import me.farshad.dsl.spec.Contact

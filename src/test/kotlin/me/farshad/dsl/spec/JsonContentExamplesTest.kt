@@ -2,12 +2,10 @@ package me.farshad.dsl.spec
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
-import me.farshad.dsl.builder.openApi
-import me.farshad.dsl.builder.toJson
+import me.farshad.dsl.builder.core.openApi
+import me.farshad.dsl.builder.core.toJson
 import me.farshad.dsl.annotation.SchemaDescription
 import me.farshad.dsl.annotation.PropertyDescription
-import me.farshad.dsl.spec.Schema
-import me.farshad.dsl.spec.SchemaType
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

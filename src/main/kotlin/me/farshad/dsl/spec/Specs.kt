@@ -3,7 +3,7 @@ package me.farshad.dsl.spec
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
-import me.farshad.dsl.builder.SchemaReference
+import me.farshad.dsl.builder.schema.SchemaReference
 import me.farshad.dsl.serializer.ExampleSerializer
 import me.farshad.dsl.serializer.MediaTypeSerializer
 

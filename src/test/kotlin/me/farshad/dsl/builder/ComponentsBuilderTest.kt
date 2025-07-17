@@ -4,8 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import kotlinx.serialization.json.*
-import me.farshad.dsl.builder.ComponentsBuilder
+import me.farshad.dsl.builder.core.ComponentsBuilder
 import me.farshad.dsl.spec.SchemaType
 import me.farshad.dsl.spec.PropertyType
 import me.farshad.dsl.annotation.SchemaDescription

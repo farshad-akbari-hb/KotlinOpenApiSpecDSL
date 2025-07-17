@@ -13,7 +13,6 @@ import kotlinx.serialization.encoding.encodeStructure
 import kotlinx.serialization.json.JsonElement
 import me.farshad.dsl.spec.Example
 
-@Serializer(forClass = Example::class)
 object ExampleSerializer : KSerializer<Example> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Example") {
         element<String?>("summary", isOptional = true)
