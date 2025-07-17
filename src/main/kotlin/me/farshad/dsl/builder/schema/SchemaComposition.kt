@@ -7,9 +7,6 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import me.farshad.dsl.builder.core.AllOfBuilder
-import me.farshad.dsl.builder.core.OneOfBuilder
-import me.farshad.dsl.builder.core.SchemaBuilder
 import me.farshad.dsl.spec.Schema
 import me.farshad.dsl.spec.SchemaType
 import kotlin.reflect.KClass

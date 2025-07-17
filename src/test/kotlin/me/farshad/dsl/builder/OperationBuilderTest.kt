@@ -4,7 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import me.farshad.dsl.builder.core.OperationBuilder
+import me.farshad.dsl.builder.paths.OperationBuilder
 import me.farshad.dsl.spec.ParameterLocation
 import me.farshad.dsl.spec.PropertyType
 import me.farshad.dsl.spec.SchemaFormat

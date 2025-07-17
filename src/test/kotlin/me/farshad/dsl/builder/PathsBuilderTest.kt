@@ -4,8 +4,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import me.farshad.dsl.builder.core.PathsBuilder
-import me.farshad.dsl.builder.core.PathItemBuilder
+import me.farshad.dsl.builder.paths.PathsBuilder
+import me.farshad.dsl.builder.paths.PathItemBuilder
 
 class PathsBuilderTest {
     

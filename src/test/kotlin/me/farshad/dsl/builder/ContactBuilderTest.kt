@@ -3,7 +3,7 @@ package me.farshad.dsl.builder
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-import me.farshad.dsl.builder.core.ContactBuilder
+import me.farshad.dsl.builder.info.ContactBuilder
 
 class ContactBuilderTest {
     

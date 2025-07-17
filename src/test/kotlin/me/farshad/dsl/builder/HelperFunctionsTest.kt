@@ -5,8 +5,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlinx.serialization.json.*
-import me.farshad.dsl.builder.core.toJsonElement
-import me.farshad.dsl.builder.core.toSerializableJsonElement
+import me.farshad.dsl.builder.utils.toJsonElement
+import me.farshad.dsl.builder.utils.toSerializableJsonElement
 import me.farshad.dsl.builder.core.openApi
 import me.farshad.dsl.builder.core.toJson
 import me.farshad.dsl.builder.core.toYaml

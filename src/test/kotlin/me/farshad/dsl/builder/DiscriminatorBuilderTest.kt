@@ -4,7 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import me.farshad.dsl.builder.core.DiscriminatorBuilder
+import me.farshad.dsl.builder.schema.DiscriminatorBuilder
 
 class DiscriminatorBuilderTest {
     

@@ -3,7 +3,7 @@ package me.farshad.dsl.builder
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-import me.farshad.dsl.builder.core.ServerBuilder
+import me.farshad.dsl.builder.info.ServerBuilder
 
 class ServerBuilderTest {
     

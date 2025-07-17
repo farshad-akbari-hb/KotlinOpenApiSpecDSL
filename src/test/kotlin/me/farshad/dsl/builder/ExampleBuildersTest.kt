@@ -5,8 +5,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlinx.serialization.json.*
-import me.farshad.dsl.builder.core.ExampleBuilder
-import me.farshad.dsl.builder.core.ExamplesBuilder
+import me.farshad.dsl.builder.response.ExampleBuilder
+import me.farshad.dsl.builder.response.ExamplesBuilder
 import kotlinx.serialization.Serializable
 
 class ExampleBuildersTest {
