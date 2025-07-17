@@ -1,13 +1,26 @@
 package me.farshad.dsl.serializer
 
-import kotlinx.serialization.*
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.descriptors.PolymorphicKind
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.double
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.long
+import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
 
@@ -27,11 +40,16 @@ object JsonElementYamlSerializer : KSerializer<JsonElement> {
                     else -> encoder.encodeString(value.content)
                 }
             }
+
             is JsonArray -> {
                 encoder.encodeSerializableValue(ListSerializer(JsonElementYamlSerializer), value.toList())
             }
+
             is JsonObject -> {
-                encoder.encodeSerializableValue(MapSerializer(String.serializer(), JsonElementYamlSerializer), value.toMap())
+                encoder.encodeSerializableValue(
+                    MapSerializer(String.serializer(), JsonElementYamlSerializer),
+                    value.toMap()
+                )
             }
         }
     }

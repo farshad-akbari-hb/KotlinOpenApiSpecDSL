@@ -1,4 +1,4 @@
-package me.farshad.dsl.spec
+package me.farshad.dsl.builder
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -7,9 +7,8 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import me.farshad.dsl.builder.AllOfBuilder
-import me.farshad.dsl.builder.OneOfBuilder
-import me.farshad.dsl.builder.SchemaBuilder
+import me.farshad.dsl.spec.Schema
+import me.farshad.dsl.spec.SchemaType
 import kotlin.reflect.KClass
 
 /**
@@ -23,7 +22,7 @@ sealed class SchemaReference {
      */
     @Serializable
     data class Ref(val path: String) : SchemaReference()
-    
+
     /**
      * An inline schema definition
      */
@@ -36,7 +35,7 @@ sealed class SchemaReference {
  */
 object SchemaReferenceSerializer : KSerializer<SchemaReference> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("SchemaReference", PrimitiveKind.STRING)
-    
+
     override fun serialize(encoder: Encoder, value: SchemaReference) {
         when (value) {
             is SchemaReference.Ref -> {
@@ -44,12 +43,13 @@ object SchemaReferenceSerializer : KSerializer<SchemaReference> {
                 val refSchema = Schema(ref = value.path)
                 encoder.encodeSerializableValue(Schema.serializer(), refSchema)
             }
+
             is SchemaReference.Inline -> {
                 encoder.encodeSerializableValue(Schema.serializer(), value.schema)
             }
         }
     }
-    
+
     override fun deserialize(decoder: Decoder): SchemaReference {
         val schema = decoder.decodeSerializableValue(Schema.serializer())
         return if (schema.ref != null) {
@@ -113,7 +113,7 @@ infix fun List<SchemaReference>.and(other: SchemaReference): List<SchemaReferenc
  */
 fun SchemaBuilder.discriminatedUnion(
     discriminatorProperty: String,
-    vararg mappings: Pair<String, KClass<*>>
+    vararg mappings: Pair<String, KClass<*>>,
 ) {
     oneOf(*mappings.map { it.second }.toTypedArray())
     discriminator(discriminatorProperty) {
@@ -167,7 +167,7 @@ fun SchemaBuilder.extending(vararg baseClasses: KClass<*>, block: SchemaBuilder.
 fun SchemaBuilder.oneOfClasses(
     vararg classes: KClass<*>,
     discriminatorProperty: String? = null,
-    discriminatorMappings: Map<String, KClass<*>>? = null
+    discriminatorMappings: Map<String, KClass<*>>? = null,
 ) {
     oneOf(*classes)
     if (discriminatorProperty != null) {

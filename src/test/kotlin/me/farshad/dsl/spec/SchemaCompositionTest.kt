@@ -8,10 +8,8 @@ import kotlinx.serialization.json.*
 import kotlinx.serialization.Serializable
 import me.farshad.dsl.builder.openApi
 import me.farshad.dsl.builder.toJson
-import me.farshad.dsl.spec.PropertyType
-import me.farshad.dsl.spec.SchemaType
-import me.farshad.dsl.spec.discriminatedUnion
-import me.farshad.dsl.spec.extending
+import me.farshad.dsl.builder.discriminatedUnion
+import me.farshad.dsl.builder.extending
 
 class SchemaCompositionTest {
     

@@ -1,9 +1,20 @@
 package me.farshad.dsl.builder
 
 
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
-import com.charleskorn.kaml.*
+import com.charleskorn.kaml.Yaml
+import com.charleskorn.kaml.YamlConfiguration
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.encodeToJsonElement
+import me.farshad.dsl.annotation.PropertyDescription
+import me.farshad.dsl.annotation.SchemaDescription
+import me.farshad.dsl.serializer.yamlSerializersModule
 import me.farshad.dsl.spec.Components
 import me.farshad.dsl.spec.Contact
 import me.farshad.dsl.spec.Discriminator
@@ -21,15 +32,9 @@ import me.farshad.dsl.spec.RequestBody
 import me.farshad.dsl.spec.Response
 import me.farshad.dsl.spec.Schema
 import me.farshad.dsl.spec.SchemaFormat
-import me.farshad.dsl.spec.SchemaReference
 import me.farshad.dsl.spec.SchemaType
 import me.farshad.dsl.spec.SecurityScheme
 import me.farshad.dsl.spec.Server
-import me.farshad.dsl.annotation.PropertyDescription
-import me.farshad.dsl.annotation.SchemaDescription
-import me.farshad.dsl.spec.inlineSchema
-import me.farshad.dsl.spec.schemaRef
-import me.farshad.dsl.serializer.yamlSerializersModule
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.declaredMemberProperties
@@ -156,7 +161,7 @@ class OperationBuilder {
         type: PropertyType,
         required: Boolean = false,
         description: String? = null,
-        format: SchemaFormat? = null
+        format: SchemaFormat? = null,
     ) {
         parameters.add(
             Parameter(
@@ -164,15 +169,17 @@ class OperationBuilder {
                 location = location,
                 required = required,
                 description = description,
-                schema = Schema(type = when(type) {
-                    PropertyType.STRING -> SchemaType.STRING
-                    PropertyType.NUMBER -> SchemaType.NUMBER
-                    PropertyType.INTEGER -> SchemaType.INTEGER
-                    PropertyType.BOOLEAN -> SchemaType.BOOLEAN
-                    PropertyType.ARRAY -> SchemaType.ARRAY
-                    PropertyType.OBJECT -> SchemaType.OBJECT
-                    PropertyType.NULL -> SchemaType.NULL
-                }, format = format)
+                schema = Schema(
+                    type = when (type) {
+                        PropertyType.STRING -> SchemaType.STRING
+                        PropertyType.NUMBER -> SchemaType.NUMBER
+                        PropertyType.INTEGER -> SchemaType.INTEGER
+                        PropertyType.BOOLEAN -> SchemaType.BOOLEAN
+                        PropertyType.ARRAY -> SchemaType.ARRAY
+                        PropertyType.OBJECT -> SchemaType.OBJECT
+                        PropertyType.NULL -> SchemaType.NULL
+                    }, format = format
+                )
             )
         )
     }
@@ -348,10 +355,10 @@ class SchemaBuilder {
     private var discriminator: Discriminator? = null
     var example: JsonElement? = null
     private var examples: Map<String, Example>? = null
-    
+
     // Backward compatibility: allow setting oneOf as List<String>
     var oneOf: List<String>?
-        get() = oneOfInternal?.mapNotNull { 
+        get() = oneOfInternal?.mapNotNull {
             when (it) {
                 is SchemaReference.Ref -> it.path
                 else -> null
@@ -363,7 +370,7 @@ class SchemaBuilder {
 
     fun property(name: String, type: PropertyType, required: Boolean = false, block: SchemaBuilder.() -> Unit = {}) {
         properties[name] = SchemaBuilder().apply {
-            this.type = when(type) {
+            this.type = when (type) {
                 PropertyType.STRING -> SchemaType.STRING
                 PropertyType.NUMBER -> SchemaType.NUMBER
                 PropertyType.INTEGER -> SchemaType.INTEGER
@@ -390,7 +397,7 @@ class SchemaBuilder {
     fun examples(block: ExamplesBuilder.() -> Unit) {
         examples = ExamplesBuilder().apply(block).build()
     }
-    
+
     // OneOf DSL methods
     fun oneOf(vararg refs: String) {
         if (oneOfInternal == null) oneOfInternal = mutableListOf()
@@ -402,17 +409,17 @@ class SchemaBuilder {
             }
         })
     }
-    
+
     fun oneOf(vararg classes: KClass<*>) {
         if (oneOfInternal == null) oneOfInternal = mutableListOf()
         oneOfInternal?.addAll(classes.map { schemaRef(it) })
     }
-    
+
     fun oneOf(block: OneOfBuilder.() -> Unit) {
         if (oneOfInternal == null) oneOfInternal = mutableListOf()
         oneOfInternal?.addAll(OneOfBuilder().apply(block).build())
     }
-    
+
     // AllOf DSL methods
     fun allOf(vararg refs: String) {
         if (allOf == null) allOf = mutableListOf()
@@ -424,17 +431,17 @@ class SchemaBuilder {
             }
         })
     }
-    
+
     fun allOf(vararg classes: KClass<*>) {
         if (allOf == null) allOf = mutableListOf()
         allOf?.addAll(classes.map { schemaRef(it) })
     }
-    
+
     fun allOf(block: AllOfBuilder.() -> Unit) {
         if (allOf == null) allOf = mutableListOf()
         allOf?.addAll(AllOfBuilder().apply(block).build())
     }
-    
+
     // AnyOf DSL methods
     fun anyOf(vararg refs: String) {
         if (anyOf == null) anyOf = mutableListOf()
@@ -446,17 +453,17 @@ class SchemaBuilder {
             }
         })
     }
-    
+
     fun anyOf(vararg classes: KClass<*>) {
         if (anyOf == null) anyOf = mutableListOf()
         anyOf?.addAll(classes.map { schemaRef(it) })
     }
-    
+
     fun anyOf(block: AnyOfBuilder.() -> Unit) {
         if (anyOf == null) anyOf = mutableListOf()
         anyOf?.addAll(AnyOfBuilder().apply(block).build())
     }
-    
+
     // Not DSL methods
     fun not(ref: String) {
         not = if (ref.startsWith("#/")) {
@@ -465,15 +472,15 @@ class SchemaBuilder {
             SchemaReference.Ref("#/components/schemas/$ref")
         }
     }
-    
+
     fun not(clazz: KClass<*>) {
         not = schemaRef(clazz)
     }
-    
+
     fun not(block: SchemaBuilder.() -> Unit) {
         not = inlineSchema(block)
     }
-    
+
     // Discriminator DSL
     fun discriminator(propertyName: String, block: DiscriminatorBuilder.() -> Unit = {}) {
         discriminator = DiscriminatorBuilder(propertyName).apply(block).build()
@@ -499,81 +506,87 @@ class SchemaBuilder {
 // Composition builders for type-safe schema composition
 class OneOfBuilder {
     private val schemas = mutableListOf<SchemaReference>()
-    
+
     fun schema(ref: String) {
-        schemas.add(if (ref.startsWith("#/")) {
-            SchemaReference.Ref(ref)
-        } else {
-            SchemaReference.Ref("#/components/schemas/$ref")
-        })
+        schemas.add(
+            if (ref.startsWith("#/")) {
+                SchemaReference.Ref(ref)
+            } else {
+                SchemaReference.Ref("#/components/schemas/$ref")
+            }
+        )
     }
-    
+
     fun schema(clazz: KClass<*>) {
         schemas.add(schemaRef(clazz))
     }
-    
+
     fun schema(block: SchemaBuilder.() -> Unit) {
         schemas.add(inlineSchema(block))
     }
-    
+
     fun build() = schemas.toList()
 }
 
 class AllOfBuilder {
     private val schemas = mutableListOf<SchemaReference>()
-    
+
     fun schema(ref: String) {
-        schemas.add(if (ref.startsWith("#/")) {
-            SchemaReference.Ref(ref)
-        } else {
-            SchemaReference.Ref("#/components/schemas/$ref")
-        })
+        schemas.add(
+            if (ref.startsWith("#/")) {
+                SchemaReference.Ref(ref)
+            } else {
+                SchemaReference.Ref("#/components/schemas/$ref")
+            }
+        )
     }
-    
+
     fun schema(clazz: KClass<*>) {
         schemas.add(schemaRef(clazz))
     }
-    
+
     fun schema(block: SchemaBuilder.() -> Unit) {
         schemas.add(inlineSchema(block))
     }
-    
+
     fun build() = schemas.toList()
 }
 
 class AnyOfBuilder {
     private val schemas = mutableListOf<SchemaReference>()
-    
+
     fun schema(ref: String) {
-        schemas.add(if (ref.startsWith("#/")) {
-            SchemaReference.Ref(ref)
-        } else {
-            SchemaReference.Ref("#/components/schemas/$ref")
-        })
+        schemas.add(
+            if (ref.startsWith("#/")) {
+                SchemaReference.Ref(ref)
+            } else {
+                SchemaReference.Ref("#/components/schemas/$ref")
+            }
+        )
     }
-    
+
     fun schema(clazz: KClass<*>) {
         schemas.add(schemaRef(clazz))
     }
-    
+
     fun schema(block: SchemaBuilder.() -> Unit) {
         schemas.add(inlineSchema(block))
     }
-    
+
     fun build() = schemas.toList()
 }
 
 class DiscriminatorBuilder(private val propertyName: String) {
     private val mapping = mutableMapOf<String, String>()
-    
+
     fun mapping(value: String, schemaRef: String) {
         mapping[value] = schemaRef
     }
-    
+
     fun mapping(value: String, clazz: KClass<*>) {
         mapping[value] = "#/components/schemas/${clazz.simpleName}"
     }
-    
+
     fun build() = Discriminator(propertyName, mapping.takeIf { it.isNotEmpty() })
 }
 
@@ -589,12 +602,12 @@ class ComponentsBuilder {
     fun schema(kClass: KClass<*>) {
         val schemaBuilder = SchemaBuilder()
         schemaBuilder.type = SchemaType.OBJECT
-        
+
         // Check for class-level ApiDescription annotation
         kClass.annotations.find { it is SchemaDescription }?.let { annotation ->
             schemaBuilder.description = (annotation as SchemaDescription).value
         }
-        
+
         kClass.declaredMemberProperties.forEach { prop ->
             val propType = when {
                 prop.returnType.classifier == List::class -> PropertyType.ARRAY
@@ -604,12 +617,12 @@ class ComponentsBuilder {
                 prop.returnType.classifier == Boolean::class -> PropertyType.BOOLEAN
                 else -> PropertyType.OBJECT
             }
-            
+
             // Check for property-level PropertyDescription annotation
             val propertyDescription = prop.annotations.find { it is PropertyDescription }?.let { annotation ->
                 (annotation as PropertyDescription).value
             }
-            
+
             schemaBuilder.property(prop.name, propType, !prop.returnType.isMarkedNullable) {
                 propertyDescription?.let { this.description = it }
             }
@@ -648,14 +661,15 @@ fun Any.toJsonElement(): JsonElement = when (this) {
     is Boolean -> JsonPrimitive(this)
     is Map<*, *> -> JsonObject(this.mapKeys { it.key.toString() }
         .mapValues { it.value?.toJsonElement() ?: JsonNull })
+
     is List<*> -> JsonArray(this.map { it?.toJsonElement() ?: JsonNull })
     else -> {
         // Try to serialize as @Serializable object
         try {
-            val json = Json { 
+            val json = Json {
                 prettyPrint = false
                 encodeDefaults = false
-                explicitNulls = false 
+                explicitNulls = false
             }
             // Try to get the serializer for this class dynamically
             val serializer = kotlinx.serialization.serializer(this::class.createType())
@@ -670,10 +684,10 @@ fun Any.toJsonElement(): JsonElement = when (this) {
 
 // Extension function to convert @Serializable objects to JsonElement
 inline fun <reified T> T.toSerializableJsonElement(): JsonElement where T : Any {
-    val json = Json { 
+    val json = Json {
         prettyPrint = false
         encodeDefaults = false
-        explicitNulls = false 
+        explicitNulls = false
     }
     return json.encodeToJsonElement(this)
 }

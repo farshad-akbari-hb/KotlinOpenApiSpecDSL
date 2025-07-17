@@ -5,11 +5,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlinx.serialization.json.*
-import me.farshad.dsl.builder.SchemaBuilder
 import me.farshad.dsl.spec.SchemaType
 import me.farshad.dsl.spec.SchemaFormat
 import me.farshad.dsl.spec.PropertyType
-import me.farshad.dsl.spec.SchemaReference
 
 class SchemaBuilderTest {
     

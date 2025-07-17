@@ -26,18 +26,20 @@ object MediaTypeSerializer : KSerializer<MediaType> {
     override fun serialize(encoder: Encoder, value: MediaType) {
         encoder.encodeStructure(descriptor) {
             value.schema?.let { encodeSerializableElement(descriptor, 0, Schema.serializer(), it) }
-            value.example?.let { 
+            value.example?.let {
                 @Suppress("UNCHECKED_CAST")
-                val serializer = encoder.serializersModule.getContextual(JsonElement::class) as? KSerializer<JsonElement> 
-                    ?: JsonElement.serializer()
+                val serializer =
+                    encoder.serializersModule.getContextual(JsonElement::class) as? KSerializer<JsonElement>
+                        ?: JsonElement.serializer()
                 encodeSerializableElement(descriptor, 1, serializer, it)
             }
             value.examples?.let { examplesMap ->
                 encodeSerializableElement(
                     descriptor, 2, MapSerializer(
-                    serializer<String>(),
-                    Example.serializer()
-                ), examplesMap)
+                        serializer<String>(),
+                        Example.serializer()
+                    ), examplesMap
+                )
             }
         }
     }
@@ -53,15 +55,19 @@ object MediaTypeSerializer : KSerializer<MediaType> {
                     0 -> schema = decodeSerializableElement(descriptor, 0, Schema.serializer())
                     1 -> {
                         @Suppress("UNCHECKED_CAST")
-                        val serializer = decoder.serializersModule.getContextual(JsonElement::class) as? KSerializer<JsonElement> 
-                            ?: JsonElement.serializer()
+                        val serializer =
+                            decoder.serializersModule.getContextual(JsonElement::class) as? KSerializer<JsonElement>
+                                ?: JsonElement.serializer()
                         example = decodeSerializableElement(descriptor, 1, serializer)
                     }
+
                     2 -> examples = decodeSerializableElement(
                         descriptor, 2, MapSerializer(
-                        serializer<String>(),
-                        Example.serializer()
-                    ))
+                            serializer<String>(),
+                            Example.serializer()
+                        )
+                    )
+
                     CompositeDecoder.DECODE_DONE -> break
                     else -> error("Unexpected index: $index")
                 }

@@ -4,10 +4,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import me.farshad.dsl.builder.OneOfBuilder
-import me.farshad.dsl.builder.AllOfBuilder
-import me.farshad.dsl.builder.AnyOfBuilder
-import me.farshad.dsl.spec.SchemaReference
 import me.farshad.dsl.spec.SchemaType
 
 class CompositionBuildersTest {

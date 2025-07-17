@@ -1,10 +1,5 @@
 package me.farshad.dsl.annotation
 
-import kotlin.annotation.AnnotationRetention
-import kotlin.annotation.AnnotationTarget
-import kotlin.annotation.Retention
-import kotlin.annotation.Target
-
 /**
  * Annotation to provide a description for a data class that will be used as an OpenAPI schema.
  * This description will be included in the generated OpenAPI specification.
