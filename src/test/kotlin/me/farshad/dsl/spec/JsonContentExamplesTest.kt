@@ -1,4 +1,4 @@
-package me.farshad
+package me.farshad.dsl.spec
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*

@@ -1,4 +1,4 @@
-package me.farshad
+package me.farshad.dsl.builder
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
