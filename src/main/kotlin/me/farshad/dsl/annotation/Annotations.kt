@@ -8,7 +8,9 @@ package me.farshad.dsl.annotation
  */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class SchemaDescription(val value: String)
+annotation class SchemaDescription(
+    val value: String,
+)
 
 /**
  * Annotation to provide a description for a property of a data class used in OpenAPI schemas.
@@ -18,4 +20,6 @@ annotation class SchemaDescription(val value: String)
  */
 @Target(AnnotationTarget.PROPERTY)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class PropertyDescription(val value: String)
+annotation class PropertyDescription(
+    val value: String,
+)

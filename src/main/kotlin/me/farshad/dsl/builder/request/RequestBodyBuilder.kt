@@ -13,12 +13,16 @@ class RequestBodyBuilder {
     var required: Boolean = false
     private val content = mutableMapOf<String, MediaType>()
 
-    fun jsonContent(schemaRef: String? = null, block: SchemaBuilder.() -> Unit = {}) {
-        val schema = if (schemaRef != null) {
-            Schema(ref = "#/components/schemas/$schemaRef")
-        } else {
-            SchemaBuilder().apply(block).build()
-        }
+    fun jsonContent(
+        schemaRef: String? = null,
+        block: SchemaBuilder.() -> Unit = {},
+    ) {
+        val schema =
+            if (schemaRef != null) {
+                Schema(ref = "#/components/schemas/$schemaRef")
+            } else {
+                SchemaBuilder().apply(block).build()
+            }
         content["application/json"] = MediaType(schema = schema)
     }
 
@@ -27,20 +31,29 @@ class RequestBodyBuilder {
         content["application/json"] = MediaType(schema = Schema(ref = "#/components/schemas/$schemaName"))
     }
 
-    fun jsonContent(schemaClass: KClass<*>, example: Any) {
+    fun jsonContent(
+        schemaClass: KClass<*>,
+        example: Any,
+    ) {
         val schemaName = schemaClass.simpleName
-        content["application/json"] = MediaType(
-            schema = Schema(ref = "#/components/schemas/$schemaName"),
-            example = example.toJsonElement()
-        )
+        content["application/json"] =
+            MediaType(
+                schema = Schema(ref = "#/components/schemas/$schemaName"),
+                example = example.toJsonElement(),
+            )
     }
 
-    fun jsonContent(schemaRef: String? = null, example: Any, block: SchemaBuilder.() -> Unit = {}) {
-        val schema = if (schemaRef != null) {
-            Schema(ref = "#/components/schemas/$schemaRef")
-        } else {
-            SchemaBuilder().apply(block).build()
-        }
+    fun jsonContent(
+        schemaRef: String? = null,
+        example: Any,
+        block: SchemaBuilder.() -> Unit = {},
+    ) {
+        val schema =
+            if (schemaRef != null) {
+                Schema(ref = "#/components/schemas/$schemaRef")
+            } else {
+                SchemaBuilder().apply(block).build()
+            }
         content["application/json"] = MediaType(schema = schema, example = example.toJsonElement())
     }
 

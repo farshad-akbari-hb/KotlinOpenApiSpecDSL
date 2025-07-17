@@ -21,7 +21,10 @@ class OpenApiBuilder {
         info = InfoBuilder().apply(block).build()
     }
 
-    fun server(url: String, block: ServerBuilder.() -> Unit = {}) {
+    fun server(
+        url: String,
+        block: ServerBuilder.() -> Unit = {},
+    ) {
         servers.add(ServerBuilder(url).apply(block).build())
     }
 
@@ -33,16 +36,15 @@ class OpenApiBuilder {
         components = ComponentsBuilder().apply(block).build()
     }
 
-    fun build() = OpenApiSpec(
-        openapi = openapi,
-        info = info,
-        servers = servers,
-        paths = paths,
-        components = components
-    )
+    fun build() =
+        OpenApiSpec(
+            openapi = openapi,
+            info = info,
+            servers = servers,
+            paths = paths,
+            components = components,
+        )
 }
 
 // DSL entry point
-fun openApi(block: OpenApiBuilder.() -> Unit): OpenApiSpec {
-    return OpenApiBuilder().apply(block).build()
-}
+fun openApi(block: OpenApiBuilder.() -> Unit): OpenApiSpec = OpenApiBuilder().apply(block).build()

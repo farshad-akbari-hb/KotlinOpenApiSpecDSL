@@ -17,13 +17,17 @@ import me.farshad.dsl.spec.MediaType
 import me.farshad.dsl.spec.Schema
 
 object MediaTypeSerializer : KSerializer<MediaType> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("MediaType") {
-        element<Schema?>("schema", isOptional = true)
-        element<JsonElement?>("example", isOptional = true)
-        element<Map<String, Example>?>("examples", isOptional = true)
-    }
+    override val descriptor: SerialDescriptor =
+        buildClassSerialDescriptor("MediaType") {
+            element<Schema?>("schema", isOptional = true)
+            element<JsonElement?>("example", isOptional = true)
+            element<Map<String, Example>?>("examples", isOptional = true)
+        }
 
-    override fun serialize(encoder: Encoder, value: MediaType) {
+    override fun serialize(
+        encoder: Encoder,
+        value: MediaType,
+    ) {
         encoder.encodeStructure(descriptor) {
             value.schema?.let { encodeSerializableElement(descriptor, 0, Schema.serializer(), it) }
             value.example?.let {
@@ -35,10 +39,13 @@ object MediaTypeSerializer : KSerializer<MediaType> {
             }
             value.examples?.let { examplesMap ->
                 encodeSerializableElement(
-                    descriptor, 2, MapSerializer(
+                    descriptor,
+                    2,
+                    MapSerializer(
                         serializer<String>(),
-                        Example.serializer()
-                    ), examplesMap
+                        Example.serializer(),
+                    ),
+                    examplesMap,
                 )
             }
         }
@@ -61,12 +68,16 @@ object MediaTypeSerializer : KSerializer<MediaType> {
                         example = decodeSerializableElement(descriptor, 1, serializer)
                     }
 
-                    2 -> examples = decodeSerializableElement(
-                        descriptor, 2, MapSerializer(
-                            serializer<String>(),
-                            Example.serializer()
-                        )
-                    )
+                    2 ->
+                        examples =
+                            decodeSerializableElement(
+                                descriptor,
+                                2,
+                                MapSerializer(
+                                    serializer<String>(),
+                                    Example.serializer(),
+                                ),
+                            )
 
                     CompositeDecoder.DECODE_DONE -> break
                     else -> error("Unexpected index: $index")

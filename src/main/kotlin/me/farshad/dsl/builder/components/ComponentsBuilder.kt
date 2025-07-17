@@ -19,7 +19,10 @@ class ComponentsBuilder {
     private val securitySchemes = mutableMapOf<String, SecurityScheme>()
     private val examples = mutableMapOf<String, Example>()
 
-    fun schema(name: String, block: SchemaBuilder.() -> Unit) {
+    fun schema(
+        name: String,
+        block: SchemaBuilder.() -> Unit,
+    ) {
         schemas[name] = SchemaBuilder().apply(block).build()
     }
 
@@ -33,19 +36,21 @@ class ComponentsBuilder {
         }
 
         kClass.declaredMemberProperties.forEach { prop ->
-            val propType = when {
-                prop.returnType.classifier == List::class -> PropertyType.ARRAY
-                prop.returnType.classifier == String::class -> PropertyType.STRING
-                prop.returnType.classifier == Int::class || prop.returnType.classifier == Long::class -> PropertyType.INTEGER
-                prop.returnType.classifier == Double::class || prop.returnType.classifier == Float::class -> PropertyType.NUMBER
-                prop.returnType.classifier == Boolean::class -> PropertyType.BOOLEAN
-                else -> PropertyType.OBJECT
-            }
+            val propType =
+                when {
+                    prop.returnType.classifier == List::class -> PropertyType.ARRAY
+                    prop.returnType.classifier == String::class -> PropertyType.STRING
+                    prop.returnType.classifier == Int::class || prop.returnType.classifier == Long::class -> PropertyType.INTEGER
+                    prop.returnType.classifier == Double::class || prop.returnType.classifier == Float::class -> PropertyType.NUMBER
+                    prop.returnType.classifier == Boolean::class -> PropertyType.BOOLEAN
+                    else -> PropertyType.OBJECT
+                }
 
             // Check for property-level PropertyDescription annotation
-            val propertyDescription = prop.annotations.find { it is PropertyDescription }?.let { annotation ->
-                (annotation as PropertyDescription).value
-            }
+            val propertyDescription =
+                prop.annotations.find { it is PropertyDescription }?.let { annotation ->
+                    (annotation as PropertyDescription).value
+                }
 
             schemaBuilder.property(prop.name, propType, !prop.returnType.isMarkedNullable) {
                 propertyDescription?.let { this.description = it }
@@ -54,21 +59,35 @@ class ComponentsBuilder {
         schemas[kClass.simpleName!!] = schemaBuilder.build()
     }
 
-    fun securityScheme(name: String, type: String, scheme: String? = null, bearerFormat: String? = null) {
+    fun securityScheme(
+        name: String,
+        type: String,
+        scheme: String? = null,
+        bearerFormat: String? = null,
+    ) {
         securitySchemes[name] = SecurityScheme(type, scheme, bearerFormat)
     }
 
-    fun example(name: String, block: ExampleBuilder.() -> Unit) {
+    fun example(
+        name: String,
+        block: ExampleBuilder.() -> Unit,
+    ) {
         examples[name] = ExampleBuilder().apply(block).build()
     }
 
-    fun example(name: String, value: Any, summary: String? = null, description: String? = null) {
+    fun example(
+        name: String,
+        value: Any,
+        summary: String? = null,
+        description: String? = null,
+    ) {
         examples[name] = Example(summary, description, value.toJsonElement())
     }
 
-    fun build() = Components(
-        schemas = schemas.takeIf { it.isNotEmpty() },
-        securitySchemes = securitySchemes.takeIf { it.isNotEmpty() },
-        examples = examples.takeIf { it.isNotEmpty() }
-    )
+    fun build() =
+        Components(
+            schemas = schemas.takeIf { it.isNotEmpty() },
+            securitySchemes = securitySchemes.takeIf { it.isNotEmpty() },
+            examples = examples.takeIf { it.isNotEmpty() },
+        )
 }

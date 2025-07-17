@@ -16,7 +16,10 @@ class InfoBuilder {
         contact = ContactBuilder().apply(block).build()
     }
 
-    fun license(name: String, url: String? = null) {
+    fun license(
+        name: String,
+        url: String? = null,
+    ) {
         license = License(name, url)
     }
 

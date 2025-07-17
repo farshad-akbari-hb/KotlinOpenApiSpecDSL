@@ -21,13 +21,17 @@ sealed class SchemaReference {
      * A reference to a schema by its path (e.g., "#/components/schemas/Pet")
      */
     @Serializable
-    data class Ref(val path: String) : SchemaReference()
+    data class Ref(
+        val path: String,
+    ) : SchemaReference()
 
     /**
      * An inline schema definition
      */
     @Serializable
-    data class Inline(val schema: Schema) : SchemaReference()
+    data class Inline(
+        val schema: Schema,
+    ) : SchemaReference()
 }
 
 /**
@@ -36,7 +40,10 @@ sealed class SchemaReference {
 object SchemaReferenceSerializer : KSerializer<SchemaReference> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("SchemaReference", PrimitiveKind.STRING)
 
-    override fun serialize(encoder: Encoder, value: SchemaReference) {
+    override fun serialize(
+        encoder: Encoder,
+        value: SchemaReference,
+    ) {
         when (value) {
             is SchemaReference.Ref -> {
                 // Serialize as a schema with $ref property
@@ -70,8 +77,7 @@ fun schemaRef(path: String): SchemaReference = SchemaReference.Ref(path)
 /**
  * Creates a schema reference from a Kotlin class
  */
-fun <T : Any> schemaRef(kClass: KClass<T>): SchemaReference =
-    SchemaReference.Ref("#/components/schemas/${kClass.simpleName}")
+fun <T : Any> schemaRef(kClass: KClass<T>): SchemaReference = SchemaReference.Ref("#/components/schemas/${kClass.simpleName}")
 
 /**
  * Creates a schema reference from a reified type
@@ -81,8 +87,7 @@ inline fun <reified T : Any> schemaRef(): SchemaReference = schemaRef(T::class)
 /**
  * Creates an inline schema reference
  */
-fun inlineSchema(block: SchemaBuilder.() -> Unit): SchemaReference =
-    SchemaReference.Inline(SchemaBuilder().apply(block).build())
+fun inlineSchema(block: SchemaBuilder.() -> Unit): SchemaReference = SchemaReference.Inline(SchemaBuilder().apply(block).build())
 
 // DSL operator overloading for more idiomatic Kotlin
 
@@ -138,7 +143,10 @@ fun SchemaBuilder.nullable(block: SchemaBuilder.() -> Unit) {
 /**
  * Creates a schema that extends another schema using allOf
  */
-fun SchemaBuilder.extending(baseClass: KClass<*>, block: SchemaBuilder.() -> Unit = {}) {
+fun SchemaBuilder.extending(
+    baseClass: KClass<*>,
+    block: SchemaBuilder.() -> Unit = {},
+) {
     allOf {
         schema(baseClass)
         schema {
@@ -151,7 +159,10 @@ fun SchemaBuilder.extending(baseClass: KClass<*>, block: SchemaBuilder.() -> Uni
 /**
  * Creates a schema that extends multiple schemas using allOf
  */
-fun SchemaBuilder.extending(vararg baseClasses: KClass<*>, block: SchemaBuilder.() -> Unit = {}) {
+fun SchemaBuilder.extending(
+    vararg baseClasses: KClass<*>,
+    block: SchemaBuilder.() -> Unit = {},
+) {
     allOf {
         baseClasses.forEach { schema(it) }
         schema {
@@ -182,7 +193,10 @@ fun SchemaBuilder.oneOfClasses(
 /**
  * Creates an allOf schema from varargs of classes
  */
-fun SchemaBuilder.allOfClasses(vararg classes: KClass<*>, additionalProperties: SchemaBuilder.() -> Unit = {}) {
+fun SchemaBuilder.allOfClasses(
+    vararg classes: KClass<*>,
+    additionalProperties: SchemaBuilder.() -> Unit = {},
+) {
     allOf {
         classes.forEach { schema(it) }
         if (additionalProperties != {}) {

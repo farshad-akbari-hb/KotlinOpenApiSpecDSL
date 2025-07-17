@@ -7,7 +7,6 @@ import me.farshad.dsl.builder.schema.SchemaReference
 import me.farshad.dsl.serializer.ExampleSerializer
 import me.farshad.dsl.serializer.MediaTypeSerializer
 
-
 // OpenAPI DSL Classes with kotlinx.serialization support
 @Serializable
 data class OpenApiSpec(
@@ -91,7 +90,7 @@ enum class ParameterLocation {
     PATH,
 
     @SerialName("cookie")
-    COOKIE
+    COOKIE,
 }
 
 @Serializable
@@ -115,7 +114,7 @@ enum class SchemaType {
     OBJECT,
 
     @SerialName("null")
-    NULL
+    NULL,
 }
 
 @Serializable
@@ -139,7 +138,7 @@ enum class PropertyType {
     OBJECT,
 
     @SerialName("null")
-    NULL
+    NULL,
 }
 
 @Serializable
@@ -160,7 +159,7 @@ enum class SchemaFormat {
     PASSWORD,
 
     @SerialName("url")
-    URL
+    URL,
 }
 
 @Serializable

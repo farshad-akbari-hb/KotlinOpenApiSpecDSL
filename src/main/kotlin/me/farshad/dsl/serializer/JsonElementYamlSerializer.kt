@@ -28,7 +28,10 @@ import kotlinx.serialization.modules.contextual
 object JsonElementYamlSerializer : KSerializer<JsonElement> {
     override val descriptor: SerialDescriptor = buildSerialDescriptor("JsonElement", PolymorphicKind.SEALED)
 
-    override fun serialize(encoder: Encoder, value: JsonElement) {
+    override fun serialize(
+        encoder: Encoder,
+        value: JsonElement,
+    ) {
         when (value) {
             is JsonNull -> encoder.encodeNull()
             is JsonPrimitive -> {
@@ -48,7 +51,7 @@ object JsonElementYamlSerializer : KSerializer<JsonElement> {
             is JsonObject -> {
                 encoder.encodeSerializableValue(
                     MapSerializer(String.serializer(), JsonElementYamlSerializer),
-                    value.toMap()
+                    value.toMap(),
                 )
             }
         }
@@ -61,6 +64,7 @@ object JsonElementYamlSerializer : KSerializer<JsonElement> {
 }
 
 // Create a custom serializers module for YAML
-val yamlSerializersModule = SerializersModule {
-    contextual(JsonElementYamlSerializer)
-}
+val yamlSerializersModule =
+    SerializersModule {
+        contextual(JsonElementYamlSerializer)
+    }

@@ -1,7 +1,6 @@
 package me.farshad.dsl.serializer
 
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.element
@@ -14,14 +13,18 @@ import kotlinx.serialization.json.JsonElement
 import me.farshad.dsl.spec.Example
 
 object ExampleSerializer : KSerializer<Example> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Example") {
-        element<String?>("summary", isOptional = true)
-        element<String?>("description", isOptional = true)
-        element<JsonElement?>("value", isOptional = true)
-        element<String?>("externalValue", isOptional = true)
-    }
+    override val descriptor: SerialDescriptor =
+        buildClassSerialDescriptor("Example") {
+            element<String?>("summary", isOptional = true)
+            element<String?>("description", isOptional = true)
+            element<JsonElement?>("value", isOptional = true)
+            element<String?>("externalValue", isOptional = true)
+        }
 
-    override fun serialize(encoder: Encoder, value: Example) {
+    override fun serialize(
+        encoder: Encoder,
+        value: Example,
+    ) {
         encoder.encodeStructure(descriptor) {
             value.summary?.let { encodeStringElement(descriptor, 0, it) }
             value.description?.let { encodeStringElement(descriptor, 1, it) }

@@ -12,7 +12,7 @@ class OneOfBuilder {
                 SchemaReference.Ref(ref)
             } else {
                 SchemaReference.Ref("#/components/schemas/$ref")
-            }
+            },
         )
     }
 
@@ -36,7 +36,7 @@ class AllOfBuilder {
                 SchemaReference.Ref(ref)
             } else {
                 SchemaReference.Ref("#/components/schemas/$ref")
-            }
+            },
         )
     }
 
@@ -60,7 +60,7 @@ class AnyOfBuilder {
                 SchemaReference.Ref(ref)
             } else {
                 SchemaReference.Ref("#/components/schemas/$ref")
-            }
+            },
         )
     }
 

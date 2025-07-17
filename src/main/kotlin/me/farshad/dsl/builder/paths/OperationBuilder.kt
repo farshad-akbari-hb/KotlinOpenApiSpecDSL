@@ -40,18 +40,21 @@ class OperationBuilder {
                 location = location,
                 required = required,
                 description = description,
-                schema = Schema(
-                    type = when (type) {
-                        PropertyType.STRING -> SchemaType.STRING
-                        PropertyType.NUMBER -> SchemaType.NUMBER
-                        PropertyType.INTEGER -> SchemaType.INTEGER
-                        PropertyType.BOOLEAN -> SchemaType.BOOLEAN
-                        PropertyType.ARRAY -> SchemaType.ARRAY
-                        PropertyType.OBJECT -> SchemaType.OBJECT
-                        PropertyType.NULL -> SchemaType.NULL
-                    }, format = format
-                )
-            )
+                schema =
+                    Schema(
+                        type =
+                            when (type) {
+                                PropertyType.STRING -> SchemaType.STRING
+                                PropertyType.NUMBER -> SchemaType.NUMBER
+                                PropertyType.INTEGER -> SchemaType.INTEGER
+                                PropertyType.BOOLEAN -> SchemaType.BOOLEAN
+                                PropertyType.ARRAY -> SchemaType.ARRAY
+                                PropertyType.OBJECT -> SchemaType.OBJECT
+                                PropertyType.NULL -> SchemaType.NULL
+                            },
+                        format = format,
+                    ),
+            ),
         )
     }
 
@@ -59,22 +62,30 @@ class OperationBuilder {
         requestBody = RequestBodyBuilder().apply(block).build()
     }
 
-    fun response(code: String, description: String, block: ResponseBuilder.() -> Unit = {}) {
+    fun response(
+        code: String,
+        description: String,
+        block: ResponseBuilder.() -> Unit = {},
+    ) {
         responses[code] = ResponseBuilder(description).apply(block).build()
     }
 
-    fun security(scheme: String, vararg scopes: String) {
+    fun security(
+        scheme: String,
+        vararg scopes: String,
+    ) {
         security.add(mapOf(scheme to scopes.toList()))
     }
 
-    fun build() = Operation(
-        tags = tags.takeIf { it.isNotEmpty() },
-        summary = summary,
-        description = description,
-        operationId = operationId,
-        parameters = parameters.takeIf { it.isNotEmpty() },
-        requestBody = requestBody,
-        responses = responses,
-        security = security.takeIf { it.isNotEmpty() }
-    )
+    fun build() =
+        Operation(
+            tags = tags.takeIf { it.isNotEmpty() },
+            summary = summary,
+            description = description,
+            operationId = operationId,
+            parameters = parameters.takeIf { it.isNotEmpty() },
+            requestBody = requestBody,
+            responses = responses,
+            security = security.takeIf { it.isNotEmpty() },
+        )
 }

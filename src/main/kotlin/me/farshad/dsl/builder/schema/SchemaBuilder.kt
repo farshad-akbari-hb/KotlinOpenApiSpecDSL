@@ -28,29 +28,38 @@ class SchemaBuilder {
 
     // Backward compatibility: allow setting oneOf as List<String>
     var oneOf: List<String>?
-        get() = oneOfInternal?.mapNotNull {
-            when (it) {
-                is SchemaReference.Ref -> it.path
-                else -> null
+        get() =
+            oneOfInternal?.mapNotNull {
+                when (it) {
+                    is SchemaReference.Ref -> it.path
+                    else -> null
+                }
             }
-        }
         set(value) {
             oneOfInternal = value?.map { SchemaReference.Ref(it) }?.toMutableList()
         }
 
-    fun property(name: String, type: PropertyType, required: Boolean = false, block: SchemaBuilder.() -> Unit = {}) {
-        properties[name] = SchemaBuilder().apply {
-            this.type = when (type) {
-                PropertyType.STRING -> SchemaType.STRING
-                PropertyType.NUMBER -> SchemaType.NUMBER
-                PropertyType.INTEGER -> SchemaType.INTEGER
-                PropertyType.BOOLEAN -> SchemaType.BOOLEAN
-                PropertyType.ARRAY -> SchemaType.ARRAY
-                PropertyType.OBJECT -> SchemaType.OBJECT
-                PropertyType.NULL -> SchemaType.NULL
-            }
-            block()
-        }.build()
+    fun property(
+        name: String,
+        type: PropertyType,
+        required: Boolean = false,
+        block: SchemaBuilder.() -> Unit = {},
+    ) {
+        properties[name] =
+            SchemaBuilder()
+                .apply {
+                    this.type =
+                        when (type) {
+                            PropertyType.STRING -> SchemaType.STRING
+                            PropertyType.NUMBER -> SchemaType.NUMBER
+                            PropertyType.INTEGER -> SchemaType.INTEGER
+                            PropertyType.BOOLEAN -> SchemaType.BOOLEAN
+                            PropertyType.ARRAY -> SchemaType.ARRAY
+                            PropertyType.OBJECT -> SchemaType.OBJECT
+                            PropertyType.NULL -> SchemaType.NULL
+                        }
+                    block()
+                }.build()
         if (required) {
             this.required.add(name)
         }
@@ -71,13 +80,15 @@ class SchemaBuilder {
     // OneOf DSL methods
     fun oneOf(vararg refs: String) {
         if (oneOfInternal == null) oneOfInternal = mutableListOf()
-        oneOfInternal?.addAll(refs.map { ref ->
-            if (ref.startsWith("#/")) {
-                SchemaReference.Ref(ref)
-            } else {
-                SchemaReference.Ref("#/components/schemas/$ref")
-            }
-        })
+        oneOfInternal?.addAll(
+            refs.map { ref ->
+                if (ref.startsWith("#/")) {
+                    SchemaReference.Ref(ref)
+                } else {
+                    SchemaReference.Ref("#/components/schemas/$ref")
+                }
+            },
+        )
     }
 
     fun oneOf(vararg classes: KClass<*>) {
@@ -93,13 +104,15 @@ class SchemaBuilder {
     // AllOf DSL methods
     fun allOf(vararg refs: String) {
         if (allOf == null) allOf = mutableListOf()
-        allOf?.addAll(refs.map { ref ->
-            if (ref.startsWith("#/")) {
-                SchemaReference.Ref(ref)
-            } else {
-                SchemaReference.Ref("#/components/schemas/$ref")
-            }
-        })
+        allOf?.addAll(
+            refs.map { ref ->
+                if (ref.startsWith("#/")) {
+                    SchemaReference.Ref(ref)
+                } else {
+                    SchemaReference.Ref("#/components/schemas/$ref")
+                }
+            },
+        )
     }
 
     fun allOf(vararg classes: KClass<*>) {
@@ -115,13 +128,15 @@ class SchemaBuilder {
     // AnyOf DSL methods
     fun anyOf(vararg refs: String) {
         if (anyOf == null) anyOf = mutableListOf()
-        anyOf?.addAll(refs.map { ref ->
-            if (ref.startsWith("#/")) {
-                SchemaReference.Ref(ref)
-            } else {
-                SchemaReference.Ref("#/components/schemas/$ref")
-            }
-        })
+        anyOf?.addAll(
+            refs.map { ref ->
+                if (ref.startsWith("#/")) {
+                    SchemaReference.Ref(ref)
+                } else {
+                    SchemaReference.Ref("#/components/schemas/$ref")
+                }
+            },
+        )
     }
 
     fun anyOf(vararg classes: KClass<*>) {
@@ -136,11 +151,12 @@ class SchemaBuilder {
 
     // Not DSL methods
     fun not(ref: String) {
-        not = if (ref.startsWith("#/")) {
-            SchemaReference.Ref(ref)
-        } else {
-            SchemaReference.Ref("#/components/schemas/$ref")
-        }
+        not =
+            if (ref.startsWith("#/")) {
+                SchemaReference.Ref(ref)
+            } else {
+                SchemaReference.Ref("#/components/schemas/$ref")
+            }
     }
 
     fun not(clazz: KClass<*>) {
@@ -152,23 +168,27 @@ class SchemaBuilder {
     }
 
     // Discriminator DSL
-    fun discriminator(propertyName: String, block: DiscriminatorBuilder.() -> Unit = {}) {
+    fun discriminator(
+        propertyName: String,
+        block: DiscriminatorBuilder.() -> Unit = {},
+    ) {
         discriminator = DiscriminatorBuilder(propertyName).apply(block).build()
     }
 
-    fun build() = Schema(
-        type = type,
-        format = format,
-        properties = properties.takeIf { it.isNotEmpty() },
-        required = required.takeIf { it.isNotEmpty() },
-        items = items,
-        oneOf = oneOfInternal?.toList(),
-        allOf = allOf?.toList(),
-        anyOf = anyOf?.toList(),
-        not = not,
-        discriminator = discriminator,
-        description = description,
-        example = example,
-        examples = examples
-    )
+    fun build() =
+        Schema(
+            type = type,
+            format = format,
+            properties = properties.takeIf { it.isNotEmpty() },
+            required = required.takeIf { it.isNotEmpty() },
+            items = items,
+            oneOf = oneOfInternal?.toList(),
+            allOf = allOf?.toList(),
+            anyOf = anyOf?.toList(),
+            not = not,
+            discriminator = discriminator,
+            description = description,
+            example = example,
+            examples = examples,
+        )
 }
