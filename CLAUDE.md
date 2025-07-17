@@ -99,3 +99,19 @@ The project uses JUnit 5 for testing. Tests focus on:
 - The DSL should remain idiomatic Kotlin - prefer extension functions and operator overloading where it makes sense
 
 - All OpenAPI 3.1.0 features should map cleanly to Kotlin constructs
+
+## Commit Guidelines
+
+- Always follow Git conventional commit principles:
+  - Use descriptive and concise commit messages
+  - Follow the format: `<type>(<scope>): <description>`
+  - Common types include: 
+    - `feat`: New feature
+    - `fix`: Bug fix
+    - `docs`: Documentation changes
+    - `style`: Code formatting
+    - `refactor`: Code refactoring
+    - `test`: Adding or modifying tests
+    - `chore`: Maintenance tasks
+
+- **Never add Claude or claude to git commit messages**
