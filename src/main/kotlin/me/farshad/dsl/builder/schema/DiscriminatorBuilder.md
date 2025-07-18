@@ -10,19 +10,24 @@
 ## Class Declaration
 
 ```kotlin
-class DiscriminatorBuilder
+class DiscriminatorBuilder(private val propertyName: String)
 ```
+
+## Constructor Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `propertyName` | `String` | The property name that contains the discriminator value |
 
 ## Properties
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `propertyName` | `String?` | The property name that contains the discriminator value |
 | `mapping` | `MutableMap<String, String>` | Maps discriminator values to schema references |
 
 ## Key Methods
 
-### `mapping(discriminatorValue: String, schemaRef: String)`
+### `mapping(value: String, schemaRef: String)`
 Adds a mapping from a discriminator value to a schema reference:
 
 ```kotlin
@@ -30,8 +35,16 @@ mapping("dog", "#/components/schemas/Dog")
 mapping("cat", "#/components/schemas/Cat")
 ```
 
+### `mapping(value: String, clazz: KClass<*>)`
+Adds a mapping from a discriminator value to a Kotlin class:
+
+```kotlin
+mapping("dog", Dog::class)  // Auto-generates #/components/schemas/Dog
+mapping("cat", Cat::class)  // Auto-generates #/components/schemas/Cat
+```
+
 ### `build(): Discriminator`
-Builds the final `Discriminator` object. Validates that `propertyName` is not null.
+Builds the final `Discriminator` object with the property name and mappings.
 
 ## Usage Examples
 
@@ -39,16 +52,11 @@ Builds the final `Discriminator` object. Validates that `propertyName` is not nu
 
 ```kotlin
 components {
-    // Base schema
+    // Base schema with discriminator
     schema("Pet") {
-        oneOf = listOf(
-            Schema(ref = "#/components/schemas/Dog"),
-            Schema(ref = "#/components/schemas/Cat"),
-            Schema(ref = "#/components/schemas/Bird")
-        )
+        oneOf("Dog", "Cat", "Bird")
         
-        discriminator {
-            propertyName = "petType"
+        discriminator("petType") {
             mapping("dog", "#/components/schemas/Dog")
             mapping("cat", "#/components/schemas/Cat")
             mapping("bird", "#/components/schemas/Bird")
@@ -57,30 +65,17 @@ components {
     
     // Specific schemas
     schema("Dog") {
-        type = "object"
-        properties {
-            property("petType", "string") {
-                const = JsonPrimitive("dog")
-            }
-            property("breed", "string")
-            property("barkVolume", "integer")
-        }
-        required.addAll(listOf("petType", "breed"))
+        type = SchemaType.OBJECT
+        property("petType", PropertyType.STRING, required = true)
+        property("breed", PropertyType.STRING, required = true)
+        property("barkVolume", PropertyType.INTEGER)
     }
     
     schema("Cat") {
-        type = "object"
-        properties {
-            property("petType", "string") {
-                const = JsonPrimitive("cat")
-            }
-            property("breed", "string")
-            property("livesRemaining", "integer") {
-                minimum = 0
-                maximum = 9
-            }
-        }
-        required.addAll(listOf("petType", "breed"))
+        type = SchemaType.OBJECT
+        property("petType", PropertyType.STRING, required = true)
+        property("breed", PropertyType.STRING, required = true)
+        property("livesRemaining", PropertyType.INTEGER)
     }
 }
 ```
@@ -91,74 +86,50 @@ components {
 components {
     // Abstract base vehicle
     schema("Vehicle") {
-        type = "object"
-        properties {
-            property("type", "string") {
-                description = "Vehicle type discriminator"
-            }
-            property("make", "string")
-            property("model", "string")
-            property("year", "integer")
+        type = SchemaType.OBJECT
+        property("type", PropertyType.STRING, required = true) {
+            description = "Vehicle type discriminator"
         }
-        required.addAll(listOf("type", "make", "model", "year"))
+        property("make", PropertyType.STRING, required = true)
+        property("model", PropertyType.STRING, required = true)
+        property("year", PropertyType.INTEGER, required = true)
         
-        discriminator {
-            propertyName = "type"
-        }
+        discriminator("type")
     }
     
     // Car extends Vehicle
     schema("Car") {
-        allOf = listOf(
-            Schema(ref = "#/components/schemas/Vehicle"),
-            Schema(
-                type = "object",
-                properties = mapOf(
-                    "type" to Schema(
-                        type = "string",
-                        const = JsonPrimitive("car")
-                    ),
-                    "doors" to Schema(type = "integer", minimum = 2, maximum = 5),
-                    "fuelType" to Schema(
-                        type = "string",
-                        enum = listOf("gasoline", "diesel", "electric", "hybrid")
-                    )
-                ),
-                required = listOf("doors", "fuelType")
-            )
-        )
+        allOf {
+            schema("Vehicle")
+            schema {
+                type = SchemaType.OBJECT
+                property("type", PropertyType.STRING)
+                property("doors", PropertyType.INTEGER, required = true)
+                property("fuelType", PropertyType.STRING, required = true)
+            }
+        }
     }
     
     // Motorcycle extends Vehicle
     schema("Motorcycle") {
-        allOf = listOf(
-            Schema(ref = "#/components/schemas/Vehicle"),
-            Schema(
-                type = "object",
-                properties = mapOf(
-                    "type" to Schema(
-                        type = "string",
-                        const = JsonPrimitive("motorcycle")
-                    ),
-                    "engineCC" to Schema(type = "integer", minimum = 50),
-                    "hasSidecar" to Schema(type = "boolean", default = JsonPrimitive(false))
-                ),
-                required = listOf("engineCC")
-            )
-        )
+        allOf {
+            schema("Vehicle")
+            schema {
+                type = SchemaType.OBJECT
+                property("type", PropertyType.STRING)
+                property("engineCC", PropertyType.INTEGER, required = true)
+                property("hasSidecar", PropertyType.BOOLEAN)
+            }
+        }
     }
     
     // Polymorphic response
     schema("VehicleResponse") {
-        oneOf = listOf(
-            Schema(ref = "#/components/schemas/Car"),
-            Schema(ref = "#/components/schemas/Motorcycle")
-        )
+        oneOf(Car::class, Motorcycle::class)
         
-        discriminator {
-            propertyName = "type"
-            mapping("car", "#/components/schemas/Car")
-            mapping("motorcycle", "#/components/schemas/Motorcycle")
+        discriminator("type") {
+            mapping("car", Car::class)
+            mapping("motorcycle", Motorcycle::class)
         }
     }
 }
@@ -170,83 +141,57 @@ components {
 components {
     // Base error
     schema("ApiError") {
-        type = "object"
-        properties {
-            property("errorType", "string") {
-                description = "Error type discriminator"
-            }
-            property("message", "string")
-            property("timestamp", "string") {
-                format = "date-time"
-            }
+        type = SchemaType.OBJECT
+        property("errorType", PropertyType.STRING, required = true) {
+            description = "Error type discriminator"
         }
-        required.addAll(listOf("errorType", "message", "timestamp"))
+        property("message", PropertyType.STRING, required = true)
+        property("timestamp", PropertyType.STRING, required = true) {
+            format = SchemaFormat.DATE_TIME
+        }
         
-        discriminator {
-            propertyName = "errorType"
-        }
+        discriminator("errorType")
     }
     
     // Validation error
     schema("ValidationError") {
-        allOf = listOf(
-            Schema(ref = "#/components/schemas/ApiError"),
-            Schema(
-                type = "object",
-                properties = mapOf(
-                    "errorType" to Schema(
-                        type = "string",
-                        const = JsonPrimitive("validation")
-                    ),
-                    "fieldErrors" to Schema(
-                        type = "array",
-                        items = Schema(
-                            type = "object",
-                            properties = mapOf(
-                                "field" to Schema(type = "string"),
-                                "message" to Schema(type = "string"),
-                                "code" to Schema(type = "string")
-                            ),
-                            required = listOf("field", "message")
-                        )
-                    )
-                ),
-                required = listOf("fieldErrors")
-            )
-        )
+        allOf {
+            schema("ApiError")
+            schema {
+                type = SchemaType.OBJECT
+                property("errorType", PropertyType.STRING)
+                property("fieldErrors", PropertyType.ARRAY, required = true) {
+                    items {
+                        type = SchemaType.OBJECT
+                        property("field", PropertyType.STRING, required = true)
+                        property("message", PropertyType.STRING, required = true)
+                        property("code", PropertyType.STRING)
+                    }
+                }
+            }
+        }
     }
     
     // Authentication error
     schema("AuthenticationError") {
-        allOf = listOf(
-            Schema(ref = "#/components/schemas/ApiError"),
-            Schema(
-                type = "object",
-                properties = mapOf(
-                    "errorType" to Schema(
-                        type = "string",
-                        const = JsonPrimitive("authentication")
-                    ),
-                    "realm" to Schema(type = "string"),
-                    "authScheme" to Schema(type = "string")
-                ),
-                required = listOf("realm")
-            )
-        )
+        allOf {
+            schema("ApiError")
+            schema {
+                type = SchemaType.OBJECT
+                property("errorType", PropertyType.STRING)
+                property("realm", PropertyType.STRING, required = true)
+                property("authScheme", PropertyType.STRING)
+            }
+        }
     }
     
     // Error response union
     schema("ErrorResponse") {
-        oneOf = listOf(
-            Schema(ref = "#/components/schemas/ValidationError"),
-            Schema(ref = "#/components/schemas/AuthenticationError"),
-            Schema(ref = "#/components/schemas/ApiError")  // Generic fallback
-        )
+        oneOf(ValidationError::class, AuthenticationError::class, ApiError::class)
         
-        discriminator {
-            propertyName = "errorType"
-            mapping("validation", "#/components/schemas/ValidationError")
-            mapping("authentication", "#/components/schemas/AuthenticationError")
+        discriminator("errorType") {
+            mapping("validation", ValidationError::class)
+            mapping("authentication", AuthenticationError::class)
             // Other error types fall back to generic ApiError
         }
     }
@@ -259,94 +204,64 @@ components {
 components {
     // Base event
     schema("Event") {
-        type = "object"
-        properties {
-            property("eventId", "string") { format = "uuid" }
-            property("eventType", "string")
-            property("timestamp", "string") { format = "date-time" }
-            property("userId", "string")
+        type = SchemaType.OBJECT
+        property("eventId", PropertyType.STRING, required = true) {
+            format = SchemaFormat.UUID
         }
-        required.addAll(listOf("eventId", "eventType", "timestamp"))
+        property("eventType", PropertyType.STRING, required = true)
+        property("timestamp", PropertyType.STRING, required = true) {
+            format = SchemaFormat.DATE_TIME
+        }
+        property("userId", PropertyType.STRING)
         
-        discriminator {
-            propertyName = "eventType"
-        }
+        discriminator("eventType")
     }
     
     // User event types
     schema("UserCreatedEvent") {
-        allOf = listOf(
-            Schema(ref = "#/components/schemas/Event"),
-            Schema(
-                type = "object",
-                properties = mapOf(
-                    "eventType" to Schema(
-                        type = "string",
-                        const = JsonPrimitive("user.created")
-                    ),
-                    "data" to Schema(
-                        type = "object",
-                        properties = mapOf(
-                            "username" to Schema(type = "string"),
-                            "email" to Schema(type = "string", format = "email"),
-                            "registrationSource" to Schema(type = "string")
-                        ),
-                        required = listOf("username", "email")
-                    )
-                ),
-                required = listOf("data")
-            )
-        )
+        allOf {
+            schema("Event")
+            schema {
+                type = SchemaType.OBJECT
+                property("eventType", PropertyType.STRING)
+                property("data", PropertyType.OBJECT, required = true) {
+                    property("username", PropertyType.STRING, required = true)
+                    property("email", PropertyType.STRING, required = true) {
+                        format = SchemaFormat.EMAIL
+                    }
+                    property("registrationSource", PropertyType.STRING)
+                }
+            }
+        }
     }
     
     schema("UserUpdatedEvent") {
-        allOf = listOf(
-            Schema(ref = "#/components/schemas/Event"),
-            Schema(
-                type = "object",
-                properties = mapOf(
-                    "eventType" to Schema(
-                        type = "string",
-                        const = JsonPrimitive("user.updated")
-                    ),
-                    "data" to Schema(
-                        type = "object",
-                        properties = mapOf(
-                            "updatedFields" to Schema(
-                                type = "array",
-                                items = Schema(type = "string")
-                            ),
-                            "previousValues" to Schema(
-                                type = "object",
-                                additionalProperties = Schema()
-                            ),
-                            "newValues" to Schema(
-                                type = "object",
-                                additionalProperties = Schema()
-                            )
-                        ),
-                        required = listOf("updatedFields")
-                    )
-                ),
-                required = listOf("data")
-            )
-        )
+        allOf {
+            schema("Event")
+            schema {
+                type = SchemaType.OBJECT
+                property("eventType", PropertyType.STRING)
+                property("data", PropertyType.OBJECT, required = true) {
+                    property("updatedFields", PropertyType.ARRAY, required = true) {
+                        items { type = SchemaType.STRING }
+                    }
+                    property("previousValues", PropertyType.OBJECT)
+                    property("newValues", PropertyType.OBJECT)
+                }
+            }
+        }
     }
     
     // Event stream schema
     schema("EventStream") {
-        type = "array"
+        type = SchemaType.ARRAY
         items {
-            oneOf = listOf(
-                Schema(ref = "#/components/schemas/UserCreatedEvent"),
-                Schema(ref = "#/components/schemas/UserUpdatedEvent")
-                // Add more event types as needed
-            )
+            type = SchemaType.OBJECT
+            oneOf(UserCreatedEvent::class, UserUpdatedEvent::class)
             
-            discriminator {
-                propertyName = "eventType"
-                mapping("user.created", "#/components/schemas/UserCreatedEvent")
-                mapping("user.updated", "#/components/schemas/UserUpdatedEvent")
+            discriminator("eventType") {
+                mapping("user.created", UserCreatedEvent::class)
+                mapping("user.updated", UserUpdatedEvent::class)
             }
         }
     }
@@ -358,28 +273,26 @@ components {
 ```kotlin
 // Payment processing with various methods
 schema("PaymentRequest") {
-    oneOf = listOf(
-        Schema(ref = "#/components/schemas/CreditCardPayment"),
-        Schema(ref = "#/components/schemas/BankTransferPayment"),
-        Schema(ref = "#/components/schemas/CryptoPayment"),
-        Schema(ref = "#/components/schemas/PayPalPayment")
+    oneOf(
+        CreditCardPayment::class,
+        BankTransferPayment::class,
+        CryptoPayment::class,
+        PayPalPayment::class
     )
     
-    discriminator {
-        propertyName = "method"
-        
+    discriminator("method") {
         // Multiple values can map to the same schema
-        mapping("visa", "#/components/schemas/CreditCardPayment")
-        mapping("mastercard", "#/components/schemas/CreditCardPayment")
-        mapping("amex", "#/components/schemas/CreditCardPayment")
+        mapping("visa", CreditCardPayment::class)
+        mapping("mastercard", CreditCardPayment::class)
+        mapping("amex", CreditCardPayment::class)
         
-        mapping("ach", "#/components/schemas/BankTransferPayment")
-        mapping("wire", "#/components/schemas/BankTransferPayment")
+        mapping("ach", BankTransferPayment::class)
+        mapping("wire", BankTransferPayment::class)
         
-        mapping("bitcoin", "#/components/schemas/CryptoPayment")
-        mapping("ethereum", "#/components/schemas/CryptoPayment")
+        mapping("bitcoin", CryptoPayment::class)
+        mapping("ethereum", CryptoPayment::class)
         
-        mapping("paypal", "#/components/schemas/PayPalPayment")
+        mapping("paypal", PayPalPayment::class)
     }
 }
 ```
@@ -401,38 +314,34 @@ schema("PaymentRequest") {
 ### Type Field Pattern
 
 ```kotlin
-discriminator {
-    propertyName = "type"  // Common convention
-    mapping("typeA", "#/components/schemas/TypeA")
-    mapping("typeB", "#/components/schemas/TypeB")
+discriminator("type") {  // Common convention
+    mapping("typeA", TypeA::class)
+    mapping("typeB", TypeB::class)
 }
 ```
 
 ### Kind Field Pattern
 
 ```kotlin
-discriminator {
-    propertyName = "kind"  // Alternative to "type"
-    mapping("resource.v1", "#/components/schemas/ResourceV1")
-    mapping("resource.v2", "#/components/schemas/ResourceV2")
+discriminator("kind") {  // Alternative to "type"
+    mapping("resource.v1", ResourceV1::class)
+    mapping("resource.v2", ResourceV2::class)
 }
 ```
 
 ### Class Name Pattern
 
 ```kotlin
-discriminator {
-    propertyName = "@class"  // Java-style class indicator
-    mapping("com.example.Dog", "#/components/schemas/Dog")
-    mapping("com.example.Cat", "#/components/schemas/Cat")
+discriminator("@class") {  // Java-style class indicator
+    mapping("com.example.Dog", Dog::class)
+    mapping("com.example.Cat", Cat::class)
 }
 ```
 
 ### Version-Based Pattern
 
 ```kotlin
-discriminator {
-    propertyName = "version"
+discriminator("version") {
     mapping("1.0", "#/components/schemas/PayloadV1")
     mapping("2.0", "#/components/schemas/PayloadV2")
     mapping("3.0", "#/components/schemas/PayloadV3")
@@ -480,24 +389,17 @@ Discriminators work best with:
 ```kotlin
 // Parent with discriminator
 schema("Shape") {
-    oneOf = listOf(
-        Schema(ref = "#/components/schemas/Circle"),
-        Schema(ref = "#/components/schemas/Rectangle")
-    )
-    discriminator {
-        propertyName = "shapeType"
-    }
+    oneOf(Circle::class, Rectangle::class)
+    discriminator("shapeType")
 }
 
 // Children set discriminator value
 schema("Circle") {
-    type = "object"
-    properties {
-        property("shapeType", "string") {
-            const = JsonPrimitive("circle")  // Fixed discriminator value
-        }
-        property("radius", "number")
+    type = SchemaType.OBJECT
+    property("shapeType", PropertyType.STRING) {
+        // Fixed discriminator value
     }
+    property("radius", PropertyType.NUMBER)
 }
 ```
 
@@ -506,4 +408,5 @@ schema("Circle") {
 - [SchemaBuilder](SchemaBuilder.md) - Parent builder that uses discriminators
 - [OneOfBuilder](OneOfBuilder.md) - Most common companion for discriminators
 - [AllOfBuilder](AllOfBuilder.md) - Used for inheritance patterns
-- [ComponentsBuilder](../components/ComponentsBuilder.md) - Where polymorphic schemas are defined
+- [AnyOfBuilder](AnyOfBuilder.md) - Less common but supports discriminators
+- [SchemaComposition](SchemaComposition.md) - For advanced type-safe composition patterns

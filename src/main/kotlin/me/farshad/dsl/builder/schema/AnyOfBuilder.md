@@ -17,51 +17,41 @@ class AnyOfBuilder
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `schemas` | `MutableList<Schema>` | List of schemas where at least one must be satisfied |
+| `schemas` | `MutableList<SchemaReference>` | List of schema references where at least one must be satisfied |
 
 ## Key Methods
 
 ### Schema Addition Methods
+
+#### `schema(ref: String)`
+Adds a schema reference by name:
+
+```kotlin
+schema("EmailAddress")  // Auto-prefixes with #/components/schemas/
+schema("#/components/schemas/EmailAddress")  // Full reference path
+```
+
+#### `schema(clazz: KClass<*>)`
+Adds a schema reference using a Kotlin class:
+
+```kotlin
+schema(Address::class)  // References #/components/schemas/Address
+```
 
 #### `schema(block: SchemaBuilder.() -> Unit)`
 Adds an inline schema to the anyOf:
 
 ```kotlin
 schema {
-    type = "string"
-    format = "email"
+    type = SchemaType.STRING
+    format = SchemaFormat.EMAIL
 }
-```
-
-#### `schema(type: String, block: SchemaBuilder.() -> Unit = {})`
-Adds a typed schema to the anyOf:
-
-```kotlin
-schema("array") {
-    items {
-        type = "string"
-    }
-}
-```
-
-#### `schemaRef(schemaName: String)`
-Adds a schema reference to the anyOf:
-
-```kotlin
-schemaRef("EmailAddress")  // References #/components/schemas/EmailAddress
-```
-
-#### `schemaRef<T>()`
-Adds a schema reference using a Kotlin class (with reified type):
-
-```kotlin
-schemaRef<Address>()  // References the Address class schema
 ```
 
 ### Build Method
 
-#### `build(): Schema`
-Builds the final Schema object with anyOf composition.
+#### `build(): List<SchemaReference>`
+Returns the list of schema references for use in the parent SchemaBuilder.
 
 ## Usage Examples
 
@@ -69,14 +59,17 @@ Builds the final Schema object with anyOf composition.
 
 ```kotlin
 // Accept single value or array of values
-val flexibleStringInput = anyOfBuilder {
-    // Single string
-    schema("string")
-    
-    // Array of strings
-    schema("array") {
-        items {
-            type = "string"
+schema {
+    anyOf {
+        // Single string
+        schema { type = SchemaType.STRING }
+        
+        // Array of strings
+        schema {
+            type = SchemaType.ARRAY
+            items {
+                type = SchemaType.STRING
+            }
         }
     }
 }
@@ -87,39 +80,32 @@ val flexibleStringInput = anyOfBuilder {
 
 ```kotlin
 schema("ContactInfo") {
-    anyOf = listOf(
+    anyOf {
         // Email format
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "type" to Schema(type = "string", const = JsonPrimitive("email")),
-                "value" to Schema(type = "string", format = "email")
-            ),
-            required = listOf("type", "value")
-        ),
+        schema {
+            type = SchemaType.OBJECT
+            property("type", PropertyType.STRING, required = true)
+            property("value", PropertyType.STRING, required = true) {
+                format = SchemaFormat.EMAIL
+            }
+        }
         
         // Phone format
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "type" to Schema(type = "string", const = JsonPrimitive("phone")),
-                "value" to Schema(type = "string", pattern = "^\\+?[1-9]\\d{1,14}$")
-            ),
-            required = listOf("type", "value")
-        ),
+        schema {
+            type = SchemaType.OBJECT
+            property("type", PropertyType.STRING, required = true)
+            property("value", PropertyType.STRING, required = true)
+        }
         
         // Address format
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "type" to Schema(type = "string", const = JsonPrimitive("address")),
-                "street" to Schema(type = "string"),
-                "city" to Schema(type = "string"),
-                "country" to Schema(type = "string")
-            ),
-            required = listOf("type", "street", "city", "country")
-        )
-    )
+        schema {
+            type = SchemaType.OBJECT
+            property("type", PropertyType.STRING, required = true)
+            property("street", PropertyType.STRING, required = true)
+            property("city", PropertyType.STRING, required = true)
+            property("country", PropertyType.STRING, required = true)
+        }
+    }
 }
 ```
 
@@ -128,35 +114,32 @@ schema("ContactInfo") {
 ```kotlin
 // User with optional extended profile
 schema("UserProfile") {
-    anyOf = listOf(
+    anyOf {
         // Basic user
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "username" to Schema(type = "string"),
-                "email" to Schema(type = "string", format = "email")
-            ),
-            required = listOf("username", "email")
-        ),
+        schema {
+            type = SchemaType.OBJECT
+            property("username", PropertyType.STRING, required = true)
+            property("email", PropertyType.STRING, required = true) {
+                format = SchemaFormat.EMAIL
+            }
+        }
         
         // User with profile
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "username" to Schema(type = "string"),
-                "email" to Schema(type = "string", format = "email"),
-                "profile" to Schema(
-                    type = "object",
-                    properties = mapOf(
-                        "bio" to Schema(type = "string"),
-                        "avatar" to Schema(type = "string", format = "uri"),
-                        "location" to Schema(type = "string")
-                    )
-                )
-            ),
-            required = listOf("username", "email", "profile")
-        )
-    )
+        schema {
+            type = SchemaType.OBJECT
+            property("username", PropertyType.STRING, required = true)
+            property("email", PropertyType.STRING, required = true) {
+                format = SchemaFormat.EMAIL
+            }
+            property("profile", PropertyType.OBJECT, required = true) {
+                property("bio", PropertyType.STRING)
+                property("avatar", PropertyType.STRING) {
+                    format = SchemaFormat.URL
+                }
+                property("location", PropertyType.STRING)
+            }
+        }
+    }
 }
 ```
 
@@ -165,34 +148,32 @@ schema("UserProfile") {
 ```kotlin
 // Supporting old and new API formats
 schema("ApiRequest") {
-    anyOf = listOf(
+    anyOf {
         // New format (preferred)
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "version" to Schema(type = "string", const = JsonPrimitive("2.0")),
-                "data" to Schema(
-                    type = "object",
-                    properties = mapOf(
-                        "items" to Schema(type = "array", items = Schema(ref = "#/components/schemas/Item")),
-                        "metadata" to Schema(type = "object")
-                    )
-                )
-            ),
-            required = listOf("version", "data")
-        ),
+        schema {
+            type = SchemaType.OBJECT
+            property("version", PropertyType.STRING, required = true)
+            property("data", PropertyType.OBJECT, required = true) {
+                property("items", PropertyType.ARRAY) {
+                    items {
+                        type = SchemaType.OBJECT
+                    }
+                }
+                property("metadata", PropertyType.OBJECT)
+            }
+        }
         
-        // Legacy format (deprecated but supported)
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "items" to Schema(type = "array", items = Schema(ref = "#/components/schemas/LegacyItem")),
-                "meta" to Schema(type = "string")
-            ),
-            required = listOf("items"),
-            deprecated = true
-        )
-    )
+        // Legacy format (still supported)
+        schema {
+            type = SchemaType.OBJECT
+            property("items", PropertyType.ARRAY, required = true) {
+                items {
+                    type = SchemaType.OBJECT
+                }
+            }
+            property("meta", PropertyType.STRING)
+        }
+    }
 }
 ```
 
@@ -201,40 +182,33 @@ schema("ApiRequest") {
 ```kotlin
 // Payment method with different requirements
 schema("PaymentDetails") {
-    anyOf = listOf(
+    anyOf {
         // Credit card requires CVV
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "method" to Schema(type = "string", const = JsonPrimitive("credit_card")),
-                "cardNumber" to Schema(type = "string"),
-                "cvv" to Schema(type = "string"),
-                "expiryDate" to Schema(type = "string")
-            ),
-            required = listOf("method", "cardNumber", "cvv", "expiryDate")
-        ),
+        schema {
+            type = SchemaType.OBJECT
+            property("method", PropertyType.STRING, required = true)
+            property("cardNumber", PropertyType.STRING, required = true)
+            property("cvv", PropertyType.STRING, required = true)
+            property("expiryDate", PropertyType.STRING, required = true)
+        }
         
         // Bank transfer doesn't require CVV
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "method" to Schema(type = "string", const = JsonPrimitive("bank_transfer")),
-                "accountNumber" to Schema(type = "string"),
-                "routingNumber" to Schema(type = "string")
-            ),
-            required = listOf("method", "accountNumber", "routingNumber")
-        ),
+        schema {
+            type = SchemaType.OBJECT
+            property("method", PropertyType.STRING, required = true)
+            property("accountNumber", PropertyType.STRING, required = true)
+            property("routingNumber", PropertyType.STRING, required = true)
+        }
         
         // PayPal only needs email
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "method" to Schema(type = "string", const = JsonPrimitive("paypal")),
-                "email" to Schema(type = "string", format = "email")
-            ),
-            required = listOf("method", "email")
-        )
-    )
+        schema {
+            type = SchemaType.OBJECT
+            property("method", PropertyType.STRING, required = true)
+            property("email", PropertyType.STRING, required = true) {
+                format = SchemaFormat.EMAIL
+            }
+        }
+    }
 }
 ```
 
@@ -243,28 +217,30 @@ schema("PaymentDetails") {
 ```kotlin
 // Configuration value that can be various types
 schema("ConfigValue") {
-    anyOf = listOf(
+    anyOf {
         // Boolean flag
-        Schema(type = "boolean"),
+        schema { type = SchemaType.BOOLEAN }
         
         // Numeric value
-        Schema(type = "number"),
+        schema { type = SchemaType.NUMBER }
         
         // String value
-        Schema(type = "string"),
+        schema { type = SchemaType.STRING }
         
         // Array of strings
-        Schema(
-            type = "array",
-            items = Schema(type = "string")
-        ),
+        schema {
+            type = SchemaType.ARRAY
+            items {
+                type = SchemaType.STRING
+            }
+        }
         
         // Key-value object
-        Schema(
-            type = "object",
-            additionalProperties = Schema(type = "string")
-        )
-    )
+        schema {
+            type = SchemaType.OBJECT
+            // For dynamic properties
+        }
+    }
 }
 ```
 
@@ -273,50 +249,35 @@ schema("ConfigValue") {
 ```kotlin
 // Update request that can update different field combinations
 schema("UserUpdate") {
-    anyOf = listOf(
+    anyOf {
         // Update profile only
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "profile" to Schema(ref = "#/components/schemas/Profile")
-            ),
-            required = listOf("profile")
-        ),
+        schema {
+            type = SchemaType.OBJECT
+            property("profile", PropertyType.OBJECT, required = true)
+        }
         
         // Update credentials only
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "password" to Schema(type = "string", minLength = 8),
-                "passwordConfirm" to Schema(type = "string")
-            ),
-            required = listOf("password", "passwordConfirm")
-        ),
+        schema {
+            type = SchemaType.OBJECT
+            property("password", PropertyType.STRING, required = true)
+            property("passwordConfirm", PropertyType.STRING, required = true)
+        }
         
         // Update preferences only
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "preferences" to Schema(
-                    type = "object",
-                    additionalProperties = Schema(type = "boolean")
-                )
-            ),
-            required = listOf("preferences")
-        ),
+        schema {
+            type = SchemaType.OBJECT
+            property("preferences", PropertyType.OBJECT, required = true)
+        }
         
         // Update any combination
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "profile" to Schema(ref = "#/components/schemas/Profile"),
-                "password" to Schema(type = "string", minLength = 8),
-                "passwordConfirm" to Schema(type = "string"),
-                "preferences" to Schema(type = "object")
-            ),
-            minProperties = 1
-        )
-    )
+        schema {
+            type = SchemaType.OBJECT
+            property("profile", PropertyType.OBJECT)
+            property("password", PropertyType.STRING)
+            property("passwordConfirm", PropertyType.STRING)
+            property("preferences", PropertyType.OBJECT)
+        }
+    }
 }
 ```
 
@@ -325,32 +286,28 @@ schema("UserUpdate") {
 ```kotlin
 // Content that can be a simple string or localized object
 schema("LocalizableText") {
-    anyOf = listOf(
+    anyOf {
         // Simple string (default language)
-        Schema(type = "string"),
+        schema { type = SchemaType.STRING }
         
         // Localized strings
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "en" to Schema(type = "string"),
-                "es" to Schema(type = "string"),
-                "fr" to Schema(type = "string"),
-                "de" to Schema(type = "string")
-            ),
-            minProperties = 1,
-            additionalProperties = Schema(type = "string")
-        )
-    )
+        schema {
+            type = SchemaType.OBJECT
+            property("en", PropertyType.STRING)
+            property("es", PropertyType.STRING)
+            property("fr", PropertyType.STRING)
+            property("de", PropertyType.STRING)
+        }
+    }
     
-    examples = listOf(
-        JsonPrimitive("Hello World"),
-        jsonObjectOf(
+    examples {
+        example("simple", "Hello World")
+        example("localized", mapOf(
             "en" to "Hello World",
             "es" to "Hola Mundo",
             "fr" to "Bonjour le monde"
-        )
-    )
+        ))
+    }
 }
 ```
 
@@ -373,11 +330,12 @@ schema("LocalizableText") {
 ```kotlin
 // Basic required fields with optional enhancements
 schema("Feature") {
-    anyOf = listOf(
-        schemaRef("BasicFeature"),
-        schemaRef("EnhancedFeature"),
-        schemaRef("PremiumFeature")
-    )
+    anyOf("BasicFeature", "EnhancedFeature", "PremiumFeature")
+}
+
+// Or using class references
+schema("Feature") {
+    anyOf(BasicFeature::class, EnhancedFeature::class, PremiumFeature::class)
 }
 ```
 
@@ -386,11 +344,11 @@ schema("Feature") {
 ```kotlin
 // Supporting multiple API versions
 schema("Request") {
-    anyOf = listOf(
-        schemaRef("RequestV3"),    // Current
-        schemaRef("RequestV2"),    // Legacy
-        schemaRef("RequestV1")     // Deprecated
-    )
+    anyOf {
+        schema("RequestV3")    // Current
+        schema("RequestV2")    // Legacy
+        schema("RequestV1")    // Deprecated
+    }
 }
 ```
 
@@ -399,23 +357,26 @@ schema("Request") {
 ```kotlin
 // Accept data in multiple formats
 schema("DateInput") {
-    anyOf = listOf(
+    anyOf {
         // ISO string
-        Schema(type = "string", format = "date-time"),
+        schema {
+            type = SchemaType.STRING
+            format = SchemaFormat.DATE_TIME
+        }
         
         // Unix timestamp
-        Schema(type = "integer"),
+        schema {
+            type = SchemaType.INTEGER
+        }
         
         // Structured object
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "year" to Schema(type = "integer"),
-                "month" to Schema(type = "integer"),
-                "day" to Schema(type = "integer")
-            )
-        )
-    )
+        schema {
+            type = SchemaType.OBJECT
+            property("year", PropertyType.INTEGER)
+            property("month", PropertyType.INTEGER)
+            property("day", PropertyType.INTEGER)
+        }
+    }
 }
 ```
 
@@ -482,4 +443,5 @@ allOf = listOf(
 - [SchemaBuilder](SchemaBuilder.md) - Parent builder that uses AnyOfBuilder
 - [OneOfBuilder](OneOfBuilder.md) - For mutually exclusive options
 - [AllOfBuilder](AllOfBuilder.md) - For combining all schemas
-- [ComponentsBuilder](../components/ComponentsBuilder.md) - For defining reusable schemas
+- [DiscriminatorBuilder](DiscriminatorBuilder.md) - For discriminator configuration
+- [SchemaComposition](SchemaComposition.md) - For advanced type-safe composition patterns

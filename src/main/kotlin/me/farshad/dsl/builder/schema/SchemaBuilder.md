@@ -5,7 +5,7 @@
 
 ## Overview
 
-`SchemaBuilder` is one of the most comprehensive builders in the library, responsible for creating OpenAPI schema definitions. It supports the full JSON Schema specification including types, validation, composition, and more.
+`SchemaBuilder` is the main builder for creating OpenAPI schema definitions. It supports basic JSON Schema features including types, properties, items, schema composition (oneOf, allOf, anyOf, not), discriminators, and examples.
 
 ## Class Declaration
 
@@ -19,101 +19,42 @@ class SchemaBuilder
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `type` | `String?` | Schema type (string, number, integer, boolean, array, object, null) |
-| `format` | `String?` | Format hint (e.g., date-time, email, uuid, uri, etc.) |
-| `title` | `String?` | Schema title |
+| `type` | `SchemaType?` | Schema type enum (STRING, NUMBER, INTEGER, BOOLEAN, ARRAY, OBJECT, NULL) |
+| `format` | `SchemaFormat?` | Format enum (INT32, INT64, DATE_TIME, EMAIL, PASSWORD, URL) |
 | `description` | `String?` | Schema description |
-| `default` | `JsonElement?` | Default value |
 | `example` | `JsonElement?` | Example value |
-| `examples` | `List<JsonElement>?` | Multiple example values |
 
-### Type-Specific Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `nullable` | `Boolean?` | Whether the value can be null |
-| `readOnly` | `Boolean?` | Value is read-only (only in responses) |
-| `writeOnly` | `Boolean?` | Value is write-only (only in requests) |
-| `deprecated` | `Boolean?` | Whether the schema is deprecated |
-| `const` | `JsonElement?` | Constant value |
-| `enum` | `List<Any>?` | Enumeration of valid values |
-
-### Numeric Validation Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `minimum` | `Number?` | Minimum value (inclusive by default) |
-| `maximum` | `Number?` | Maximum value (inclusive by default) |
-| `exclusiveMinimum` | `Boolean?` | Whether minimum is exclusive |
-| `exclusiveMaximum` | `Boolean?` | Whether maximum is exclusive |
-| `multipleOf` | `Number?` | Value must be multiple of this |
-
-### String Validation Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `minLength` | `Int?` | Minimum string length |
-| `maxLength` | `Int?` | Maximum string length |
-| `pattern` | `String?` | Regular expression pattern |
-
-### Array Validation Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `minItems` | `Int?` | Minimum array length |
-| `maxItems` | `Int?` | Maximum array length |
-| `uniqueItems` | `Boolean?` | Whether array items must be unique |
-| `items` | `Schema?` | Schema for array items |
-
-### Object Validation Properties
+### Object Properties
 
 | Property | Type | Description |
 |----------|------|-------------|
 | `properties` | `MutableMap<String, Schema>` | Object properties |
-| `required` | `MutableList<String>` | Required property names |
-| `additionalProperties` | `Schema?` | Schema for additional properties |
-| `minProperties` | `Int?` | Minimum number of properties |
-| `maxProperties` | `Int?` | Maximum number of properties |
+| `required` | `MutableList<String>` | Required property names (internal) |
+
+### Array Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `items` | `Schema?` | Schema for array items |
 
 ### Composition Properties
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `oneOf` | `List<Schema>?` | One-of schema composition |
-| `allOf` | `List<Schema>?` | All-of schema composition |
-| `anyOf` | `List<Schema>?` | Any-of schema composition |
-| `not` | `Schema?` | Not schema (negation) |
-| `discriminator` | `Discriminator?` | Discriminator for polymorphism |
+| `oneOf` | `List<String>?` | One-of schema composition (backward compatibility) |
 
-### Reference Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `ref` | `String?` | Reference to another schema |
+Note: The builder internally uses `SchemaReference` for composition but provides backward compatibility for string-based oneOf.
 
 ## Key Methods
 
 ### Property Methods
 
-#### `property(name: String, block: SchemaBuilder.() -> Unit)`
-Adds a property to an object schema:
+#### `property(name: String, type: PropertyType, required: Boolean = false, block: SchemaBuilder.() -> Unit = {})`
+Adds a typed property to an object schema:
 
 ```kotlin
-property("username") {
-    type = "string"
-    minLength = 3
-    maxLength = 20
-    pattern = "^[a-zA-Z0-9_]+$"
-}
-```
-
-#### `property(name: String, type: String, block: SchemaBuilder.() -> Unit = {})`
-Adds a typed property:
-
-```kotlin
-property("age", "integer") {
-    minimum = 0
-    maximum = 150
+property("username", PropertyType.STRING, required = true) {
+    description = "User's username"
 }
 ```
 
@@ -124,73 +65,142 @@ Configures array item schema:
 
 ```kotlin
 items {
-    type = "string"
-    enum = listOf("red", "green", "blue")
+    type = SchemaType.STRING
 }
 ```
 
-### Additional Properties
+### Example Methods
 
-#### `additionalProperties(block: SchemaBuilder.() -> Unit)`
-Configures additional properties for objects:
+#### `example(value: Any)`
+Sets an example value (automatically converts to JsonElement):
 
 ```kotlin
-additionalProperties {
-    type = "string"
-}
+example("john.doe@example.com")
 ```
 
-### Reference Methods
-
-#### `ref(schemaName: String)`
-References another schema:
+#### `examples(block: ExamplesBuilder.() -> Unit)`
+Sets multiple named examples:
 
 ```kotlin
-ref("User")  // Creates reference to #/components/schemas/User
+examples {
+    example("valid", "john.doe@example.com")
+    example("invalid", "not-an-email")
+}
 ```
 
 ### Composition Methods
 
-#### `oneOf(vararg schemas: Schema)`
-Creates a one-of composition:
+#### `oneOf(vararg refs: String)`
+Creates a one-of composition with string references:
 
 ```kotlin
-oneOf(
-    Schema(type = "string"),
-    Schema(type = "number")
-)
+oneOf("User", "Admin")  // Auto-prefixes with #/components/schemas/
 ```
 
-#### `allOf(vararg schemas: Schema)`
-Creates an all-of composition:
+#### `oneOf(vararg classes: KClass<*>)`
+Creates a one-of composition with Kotlin classes:
 
 ```kotlin
-allOf(
-    Schema(ref = "#/components/schemas/BaseModel"),
-    Schema(properties = mapOf("extraField" to Schema(type = "string")))
-)
+oneOf(User::class, Admin::class)
 ```
 
-#### `anyOf(vararg schemas: Schema)`
-Creates an any-of composition:
+#### `oneOf(block: OneOfBuilder.() -> Unit)`
+Creates a one-of composition using builder:
 
 ```kotlin
-anyOf(
-    Schema(type = "string"),
-    Schema(type = "array", items = Schema(type = "string"))
-)
+oneOf {
+    schema("User")
+    schema(Admin::class)
+    schema {
+        type = SchemaType.STRING
+    }
+}
+```
+
+#### `allOf(vararg refs: String)`
+Creates an all-of composition with string references:
+
+```kotlin
+allOf("BaseModel", "Timestamped")
+```
+
+#### `allOf(vararg classes: KClass<*>)`
+Creates an all-of composition with Kotlin classes:
+
+```kotlin
+allOf(BaseModel::class, Timestamped::class)
+```
+
+#### `allOf(block: AllOfBuilder.() -> Unit)`
+Creates an all-of composition using builder:
+
+```kotlin
+allOf {
+    schema("BaseModel")
+    schema {
+        type = SchemaType.OBJECT
+        property("extraField", PropertyType.STRING)
+    }
+}
+```
+
+#### `anyOf(vararg refs: String)`
+Creates an any-of composition with string references:
+
+```kotlin
+anyOf("StringValue", "ArrayValue")
+```
+
+#### `anyOf(vararg classes: KClass<*>)`
+Creates an any-of composition with Kotlin classes:
+
+```kotlin
+anyOf(StringValue::class, ArrayValue::class)
+```
+
+#### `anyOf(block: AnyOfBuilder.() -> Unit)`
+Creates an any-of composition using builder:
+
+```kotlin
+anyOf {
+    schema { type = SchemaType.STRING }
+    schema { type = SchemaType.NUMBER }
+}
+```
+
+#### `not(ref: String)`
+Creates a not schema with string reference:
+
+```kotlin
+not("InvalidSchema")
+```
+
+#### `not(clazz: KClass<*>)`
+Creates a not schema with Kotlin class:
+
+```kotlin
+not(InvalidSchema::class)
+```
+
+#### `not(block: SchemaBuilder.() -> Unit)`
+Creates a not schema using builder:
+
+```kotlin
+not {
+    type = SchemaType.STRING
+    description = "Must not be a string"
+}
 ```
 
 ### Discriminator Method
 
-#### `discriminator(block: DiscriminatorBuilder.() -> Unit)`
+#### `discriminator(propertyName: String, block: DiscriminatorBuilder.() -> Unit = {})`
 Configures discriminator for polymorphic schemas:
 
 ```kotlin
-discriminator {
-    propertyName = "type"
+discriminator("type") {
     mapping("dog", "#/components/schemas/Dog")
-    mapping("cat", "#/components/schemas/Cat")
+    mapping("cat", Cat::class)
 }
 ```
 
@@ -206,36 +216,32 @@ Builds the final `Schema` object with all configurations.
 ```kotlin
 // String schema
 schema {
-    type = "string"
-    minLength = 1
-    maxLength = 100
-    pattern = "^[A-Za-z ]+$"
-    example = JsonPrimitive("John Doe")
+    type = SchemaType.STRING
+    format = SchemaFormat.EMAIL
+    description = "User's email address"
+    example("john.doe@example.com")
 }
 
 // Number schema
 schema {
-    type = "number"
-    format = "double"
-    minimum = 0.0
-    maximum = 999.99
-    multipleOf = 0.01
-    example = JsonPrimitive(19.99)
+    type = SchemaType.NUMBER
+    description = "Product price"
+    example(19.99)
 }
 
 // Integer schema
 schema {
-    type = "integer"
-    format = "int32"
-    minimum = 1
-    maximum = 100
-    example = JsonPrimitive(42)
+    type = SchemaType.INTEGER
+    format = SchemaFormat.INT32
+    description = "User age"
+    example(42)
 }
 
 // Boolean schema
 schema {
-    type = "boolean"
-    default = JsonPrimitive(false)
+    type = SchemaType.BOOLEAN
+    description = "Is active flag"
+    example(true)
 }
 ```
 
@@ -243,86 +249,59 @@ schema {
 
 ```kotlin
 schema {
-    type = "object"
-    title = "User"
+    type = SchemaType.OBJECT
     description = "User account information"
     
-    property("id") {
-        type = "string"
-        format = "uuid"
-        readOnly = true
+    property("id", PropertyType.STRING) {
+        format = SchemaFormat.UUID
         description = "Unique user identifier"
     }
     
-    property("username") {
-        type = "string"
-        minLength = 3
-        maxLength = 30
-        pattern = "^[a-zA-Z0-9_-]+$"
+    property("username", PropertyType.STRING, required = true) {
         description = "Unique username"
     }
     
-    property("email") {
-        type = "string"
-        format = "email"
+    property("email", PropertyType.STRING, required = true) {
+        format = SchemaFormat.EMAIL
         description = "User's email address"
     }
     
-    property("age") {
-        type = "integer"
-        minimum = 18
-        maximum = 120
+    property("age", PropertyType.INTEGER) {
         description = "User's age"
     }
     
-    property("roles") {
-        type = "array"
+    property("roles", PropertyType.ARRAY, required = true) {
         description = "User roles"
         items {
-            type = "string"
-            enum = listOf("admin", "user", "moderator")
-        }
-        minItems = 1
-        uniqueItems = true
-    }
-    
-    property("profile") {
-        type = "object"
-        properties {
-            property("bio", "string") {
-                maxLength = 500
-            }
-            property("avatar", "string") {
-                format = "uri"
-            }
-            property("preferences") {
-                type = "object"
-                additionalProperties {
-                    type = "boolean"
-                }
-            }
+            type = SchemaType.STRING
         }
     }
     
-    property("createdAt") {
-        type = "string"
-        format = "date-time"
-        readOnly = true
+    property("profile", PropertyType.OBJECT) {
+        property("bio", PropertyType.STRING) {
+            description = "User biography"
+        }
+        property("avatar", PropertyType.STRING) {
+            format = SchemaFormat.URL
+        }
     }
     
-    required.addAll(listOf("username", "email", "roles"))
+    property("createdAt", PropertyType.STRING) {
+        format = SchemaFormat.DATE_TIME
+        description = "Account creation timestamp"
+    }
     
-    example = jsonObjectOf(
+    example(mapOf(
         "id" to "123e4567-e89b-12d3-a456-426614174000",
         "username" to "johndoe",
         "email" to "john@example.com",
         "age" to 25,
-        "roles" to jsonArrayOf("user"),
-        "profile" to jsonObjectOf(
+        "roles" to listOf("user"),
+        "profile" to mapOf(
             "bio" to "Software developer",
             "avatar" to "https://example.com/avatar.jpg"
         )
-    )
+    ))
 }
 ```
 
@@ -331,60 +310,22 @@ schema {
 ```kotlin
 // Simple array
 schema {
-    type = "array"
+    type = SchemaType.ARRAY
     items {
-        type = "string"
+        type = SchemaType.STRING
     }
-    minItems = 1
-    maxItems = 10
-    uniqueItems = true
 }
 
 // Array of objects
 schema {
-    type = "array"
+    type = SchemaType.ARRAY
     description = "List of products"
     items {
-        type = "object"
-        properties {
-            property("id", "integer")
-            property("name", "string")
-            property("price", "number") {
-                minimum = 0
-            }
-        }
-        required.add("name")
-        required.add("price")
+        type = SchemaType.OBJECT
+        property("id", PropertyType.INTEGER)
+        property("name", PropertyType.STRING, required = true)
+        property("price", PropertyType.NUMBER, required = true)
     }
-}
-```
-
-### Enum Schema
-
-```kotlin
-// String enum
-schema {
-    type = "string"
-    enum = listOf("pending", "processing", "completed", "failed")
-    default = JsonPrimitive("pending")
-}
-
-// Numeric enum
-schema {
-    type = "integer"
-    enum = listOf(1, 2, 3, 5, 8, 13, 21)
-    description = "Fibonacci numbers"
-}
-```
-
-### Nullable Schema
-
-```kotlin
-schema {
-    type = "string"
-    format = "date"
-    nullable = true
-    description = "Optional date field"
 }
 ```
 
@@ -393,57 +334,56 @@ schema {
 #### OneOf - Union Types
 
 ```kotlin
+// Using builder DSL
 schema {
-    oneOf(
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "creditCard" to Schema(
-                    type = "object",
-                    properties = mapOf(
-                        "number" to Schema(type = "string"),
-                        "cvv" to Schema(type = "string")
-                    )
-                )
-            ),
-            required = listOf("creditCard")
-        ),
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "bankAccount" to Schema(
-                    type = "object",
-                    properties = mapOf(
-                        "accountNumber" to Schema(type = "string"),
-                        "routingNumber" to Schema(type = "string")
-                    )
-                )
-            ),
-            required = listOf("bankAccount")
-        )
-    )
-    
-    discriminator {
-        propertyName = "paymentMethod"
+    oneOf {
+        schema {
+            type = SchemaType.OBJECT
+            property("creditCard", PropertyType.OBJECT, required = true) {
+                property("number", PropertyType.STRING, required = true)
+                property("cvv", PropertyType.STRING, required = true)
+            }
+        }
+        schema {
+            type = SchemaType.OBJECT
+            property("bankAccount", PropertyType.OBJECT, required = true) {
+                property("accountNumber", PropertyType.STRING, required = true)
+                property("routingNumber", PropertyType.STRING, required = true)
+            }
+        }
     }
+    
+    discriminator("paymentMethod") {
+        mapping("credit", "#/components/schemas/CreditCardPayment")
+        mapping("bank", "#/components/schemas/BankPayment")
+    }
+}
+
+// Using class references
+schema {
+    oneOf(CreditCardPayment::class, BankPayment::class, PayPalPayment::class)
+    discriminator("type")
 }
 ```
 
 #### AllOf - Inheritance
 
 ```kotlin
+// Using builder DSL
 schema {
-    allOf(
-        Schema(ref = "#/components/schemas/BaseEntity"),
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "productName" to Schema(type = "string"),
-                "price" to Schema(type = "number", minimum = 0)
-            ),
-            required = listOf("productName", "price")
-        )
-    )
+    allOf {
+        schema("BaseEntity")
+        schema {
+            type = SchemaType.OBJECT
+            property("productName", PropertyType.STRING, required = true)
+            property("price", PropertyType.NUMBER, required = true)
+        }
+    }
+}
+
+// Using class references
+schema {
+    allOf(BaseEntity::class, Timestamped::class)
 }
 ```
 
@@ -451,104 +391,57 @@ schema {
 
 ```kotlin
 schema {
-    anyOf(
-        Schema(type = "string"),
-        Schema(type = "array", items = Schema(type = "string"))
-    )
+    anyOf {
+        schema { type = SchemaType.STRING }
+        schema { 
+            type = SchemaType.ARRAY
+            items { type = SchemaType.STRING }
+        }
+    }
     description = "Can be a single string or array of strings"
 }
 ```
 
-### Complex Validation Example
+### Complex Object Example
 
 ```kotlin
 schema {
-    type = "object"
-    title = "Address"
+    type = SchemaType.OBJECT
+    description = "Address information"
     
-    property("street") {
-        type = "string"
-        minLength = 1
-        maxLength = 100
+    property("street", PropertyType.STRING, required = true) {
+        description = "Street address"
     }
     
-    property("city") {
-        type = "string"
-        minLength = 1
-        maxLength = 50
+    property("city", PropertyType.STRING, required = true) {
+        description = "City name"
     }
     
-    property("state") {
-        type = "string"
-        pattern = "^[A-Z]{2}$"
+    property("state", PropertyType.STRING, required = true) {
         description = "Two-letter state code"
     }
     
-    property("zipCode") {
-        type = "string"
-        pattern = "^\\d{5}(-\\d{4})?$"
+    property("zipCode", PropertyType.STRING, required = true) {
         description = "5-digit ZIP or ZIP+4"
     }
     
-    property("country") {
-        type = "string"
-        enum = listOf("US", "CA", "MX")
-        default = JsonPrimitive("US")
+    property("country", PropertyType.STRING) {
+        description = "Country code"
     }
-    
-    required.addAll(listOf("street", "city", "state", "zipCode"))
-    
-    // Conditional validation using dependencies
-    additionalProperties = Schema(const = JsonPrimitive(false))
-}
-```
-
-### Schema with External Documentation
-
-```kotlin
-schema {
-    type = "object"
-    title = "GeoJSON Point"
-    description = "A GeoJSON Point geometry"
-    externalDocs = ExternalDocumentation(
-        url = "https://tools.ietf.org/html/rfc7946#section-3.1.2",
-        description = "GeoJSON Point specification"
-    )
-    
-    property("type") {
-        type = "string"
-        const = JsonPrimitive("Point")
-    }
-    
-    property("coordinates") {
-        type = "array"
-        items {
-            type = "number"
-        }
-        minItems = 2
-        maxItems = 3
-        description = "[longitude, latitude, elevation?]"
-    }
-    
-    required.addAll(listOf("type", "coordinates"))
 }
 ```
 
 ## Best Practices
 
-1. **Use appropriate types**: Choose the most specific type for your data.
+1. **Use appropriate types**: Use the type-safe enums (SchemaType, PropertyType, SchemaFormat) instead of strings.
 
-2. **Add descriptions**: Always include descriptions for complex schemas.
+2. **Add descriptions**: Always include descriptions for documentation.
 
-3. **Set validation constraints**: Use min/max, pattern, etc. to enforce data quality.
+3. **Provide examples**: Use the `example()` method to provide sample values.
 
-4. **Provide examples**: Include realistic examples to aid understanding.
+4. **Use type-safe references**: Prefer class references over string references when possible.
 
-5. **Use references**: For reusable schemas, define in components and reference.
-
-6. **Consider nullability**: Be explicit about nullable fields.
-
-7. **Mark read/write only fields**: Use readOnly for generated fields, writeOnly for passwords.
+5. **Leverage composition builders**: Use oneOf, allOf, anyOf builders for complex schemas.
 
 ## Common Patterns
 
@@ -556,27 +449,20 @@ schema {
 
 ```kotlin
 schema("PaginatedResponse") {
-    type = "object"
+    type = SchemaType.OBJECT
     
-    property("data") {
-        type = "array"
+    property("data", PropertyType.ARRAY, required = true) {
         items {
             // Generic items, specified per use
         }
     }
     
-    property("pagination") {
-        type = "object"
-        properties {
-            property("page", "integer") { minimum = 1 }
-            property("pageSize", "integer") { minimum = 1; maximum = 100 }
-            property("totalPages", "integer") { readOnly = true }
-            property("totalItems", "integer") { readOnly = true }
-        }
-        required.addAll(listOf("page", "pageSize", "totalPages", "totalItems"))
+    property("pagination", PropertyType.OBJECT, required = true) {
+        property("page", PropertyType.INTEGER, required = true)
+        property("pageSize", PropertyType.INTEGER, required = true)
+        property("totalPages", PropertyType.INTEGER, required = true)
+        property("totalItems", PropertyType.INTEGER, required = true)
     }
-    
-    required.addAll(listOf("data", "pagination"))
 }
 ```
 
@@ -584,36 +470,27 @@ schema("PaginatedResponse") {
 
 ```kotlin
 schema("ErrorResponse") {
-    type = "object"
+    type = SchemaType.OBJECT
     
-    property("error") {
-        type = "object"
-        properties {
-            property("code", "string") {
-                description = "Error code"
-                example = JsonPrimitive("VALIDATION_ERROR")
-            }
-            property("message", "string") {
-                description = "Human-readable error message"
-            }
-            property("details") {
-                type = "array"
-                items {
-                    type = "object"
-                    properties {
-                        property("field", "string")
-                        property("issue", "string")
-                    }
-                }
-            }
-            property("timestamp", "string") {
-                format = "date-time"
+    property("error", PropertyType.OBJECT, required = true) {
+        property("code", PropertyType.STRING, required = true) {
+            description = "Error code"
+            example("VALIDATION_ERROR")
+        }
+        property("message", PropertyType.STRING, required = true) {
+            description = "Human-readable error message"
+        }
+        property("details", PropertyType.ARRAY) {
+            items {
+                type = SchemaType.OBJECT
+                property("field", PropertyType.STRING)
+                property("issue", PropertyType.STRING)
             }
         }
-        required.addAll(listOf("code", "message", "timestamp"))
+        property("timestamp", PropertyType.STRING, required = true) {
+            format = SchemaFormat.DATE_TIME
+        }
     }
-    
-    required.add("error")
 }
 ```
 
@@ -622,56 +499,47 @@ schema("ErrorResponse") {
 ```kotlin
 // Base schema
 schema("Animal") {
-    type = "object"
-    discriminator {
-        propertyName = "species"
-    }
+    type = SchemaType.OBJECT
+    discriminator("species")
     
-    property("species", "string") {
+    property("species", PropertyType.STRING, required = true) {
         description = "Animal species"
     }
-    property("name", "string")
-    
-    required.addAll(listOf("species", "name"))
+    property("name", PropertyType.STRING, required = true)
 }
 
-// Derived schemas
+// Derived schemas using composition
 schema("Dog") {
-    allOf(
-        Schema(ref = "#/components/schemas/Animal"),
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "breed" to Schema(type = "string"),
-                "goodBoy" to Schema(type = "boolean", default = JsonPrimitive(true))
-            )
-        )
-    )
+    allOf {
+        schema("Animal")
+        schema {
+            type = SchemaType.OBJECT
+            property("breed", PropertyType.STRING)
+            property("goodBoy", PropertyType.BOOLEAN) {
+                example(true)
+            }
+        }
+    }
 }
 
 schema("Cat") {
-    allOf(
-        Schema(ref = "#/components/schemas/Animal"),
-        Schema(
-            type = "object",
-            properties = mapOf(
-                "breed" to Schema(type = "string"),
-                "livesRemaining" to Schema(
-                    type = "integer",
-                    minimum = 0,
-                    maximum = 9,
-                    default = JsonPrimitive(9)
-                )
-            )
-        )
-    )
+    allOf {
+        schema("Animal")
+        schema {
+            type = SchemaType.OBJECT
+            property("breed", PropertyType.STRING)
+            property("livesRemaining", PropertyType.INTEGER) {
+                example(9)
+            }
+        }
+    }
 }
 ```
 
 ## Related Builders
 
-- [ComponentsBuilder](../components/ComponentsBuilder.md) - For managing reusable schemas
 - [OneOfBuilder](OneOfBuilder.md) - For one-of compositions
 - [AllOfBuilder](AllOfBuilder.md) - For all-of compositions
 - [AnyOfBuilder](AnyOfBuilder.md) - For any-of compositions
 - [DiscriminatorBuilder](DiscriminatorBuilder.md) - For discriminator configuration
+- [SchemaComposition](SchemaComposition.md) - For advanced type-safe composition patterns
