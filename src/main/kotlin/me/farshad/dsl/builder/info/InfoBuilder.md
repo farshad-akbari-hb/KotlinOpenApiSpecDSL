@@ -171,6 +171,6 @@ The `InfoBuilder` enforces the following validation rules:
 
 ## Related Builders
 
-- [OpenApiBuilder](OpenApiBuilder.md) - Parent builder that uses InfoBuilder
+- [OpenApiBuilder](../core/OpenApiBuilder.md) - Parent builder that uses InfoBuilder
 - [ContactBuilder](ContactBuilder.md) - For building contact information
 - [ServerBuilder](ServerBuilder.md) - For server configurations (sibling in OpenApiBuilder)

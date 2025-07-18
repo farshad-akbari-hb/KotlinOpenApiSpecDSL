@@ -271,5 +271,5 @@ servers {
 
 ## Related Builders
 
-- [OpenApiBuilder](OpenApiBuilder.md) - Parent builder that manages servers
+- [OpenApiBuilder](../core/OpenApiBuilder.md) - Parent builder that manages servers
 - [InfoBuilder](InfoBuilder.md) - Sibling builder for API information

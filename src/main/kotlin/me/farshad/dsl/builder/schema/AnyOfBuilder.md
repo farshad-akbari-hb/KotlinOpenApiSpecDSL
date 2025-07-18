@@ -482,4 +482,4 @@ allOf = listOf(
 - [SchemaBuilder](SchemaBuilder.md) - Parent builder that uses AnyOfBuilder
 - [OneOfBuilder](OneOfBuilder.md) - For mutually exclusive options
 - [AllOfBuilder](AllOfBuilder.md) - For combining all schemas
-- [ComponentsBuilder](ComponentsBuilder.md) - For defining reusable schemas
+- [ComponentsBuilder](../components/ComponentsBuilder.md) - For defining reusable schemas

@@ -670,7 +670,7 @@ schema("Cat") {
 
 ## Related Builders
 
-- [ComponentsBuilder](ComponentsBuilder.md) - For managing reusable schemas
+- [ComponentsBuilder](../components/ComponentsBuilder.md) - For managing reusable schemas
 - [OneOfBuilder](OneOfBuilder.md) - For one-of compositions
 - [AllOfBuilder](AllOfBuilder.md) - For all-of compositions
 - [AnyOfBuilder](AnyOfBuilder.md) - For any-of compositions

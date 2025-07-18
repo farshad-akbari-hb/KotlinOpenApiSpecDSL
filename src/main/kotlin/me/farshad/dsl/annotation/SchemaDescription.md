@@ -355,6 +355,6 @@ data class Transaction(
 
 ## Related Annotations
 
-- [PropertyDescription](PropertyDescription.md) - For property-level descriptions
-- See also: [ComponentsBuilder](ComponentsBuilder.md) for schema generation
-- See also: [SchemaBuilder](SchemaBuilder.md) for manual schema construction
+- [PropertyDescription](../../../../../../../capabilities/PropertyDescription.md) - For property-level descriptions
+- See also: [ComponentsBuilder](../builder/components/ComponentsBuilder.md) for schema generation
+- See also: [SchemaBuilder](../../../../../../../capabilities/SchemaBuilder.md) for manual schema construction

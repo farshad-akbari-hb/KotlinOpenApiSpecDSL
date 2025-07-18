@@ -458,4 +458,4 @@ paths {
 
 - [PathItemBuilder](PathItemBuilder.md) - For defining operations on a path
 - [OperationBuilder](OperationBuilder.md) - For configuring individual operations
-- [OpenApiBuilder](OpenApiBuilder.md) - Parent builder that uses PathsBuilder
+- [OpenApiBuilder](../../../../../../../../capabilities/OpenApiBuilder.md) - Parent builder that uses PathsBuilder

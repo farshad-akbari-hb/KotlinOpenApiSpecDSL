@@ -562,6 +562,6 @@ examples {
 ## Related Builders
 
 - [ExampleBuilder](ExampleBuilder.md) - For building individual examples
-- [ComponentsBuilder](ComponentsBuilder.md) - For defining reusable examples
+- [ComponentsBuilder](../components/ComponentsBuilder.md) - For defining reusable examples
 - [MediaTypeBuilder](MediaTypeBuilder.md) - Where examples are used
 - [ParameterBuilder](ParameterBuilder.md) - Can include parameter examples

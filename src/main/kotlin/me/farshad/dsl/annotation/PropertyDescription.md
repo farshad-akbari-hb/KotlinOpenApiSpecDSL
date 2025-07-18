@@ -479,5 +479,5 @@ data class ApiConfiguration(
 ## Related Annotations
 
 - [SchemaDescription](SchemaDescription.md) - For class-level descriptions
-- See also: [ComponentsBuilder](ComponentsBuilder.md) for schema generation
-- See also: [SchemaBuilder](SchemaBuilder.md) for manual schema construction
+- See also: [ComponentsBuilder](../builder/components/ComponentsBuilder.md) for schema generation
+- See also: [SchemaBuilder](../../../../../../../capabilities/SchemaBuilder.md) for manual schema construction

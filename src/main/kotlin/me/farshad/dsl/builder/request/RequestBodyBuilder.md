@@ -586,7 +586,7 @@ requestBody {
 
 ## Related Builders
 
-- [OperationBuilder](OperationBuilder.md) - Parent builder that uses RequestBodyBuilder
-- [SchemaBuilder](SchemaBuilder.md) - For defining request schemas
-- [ResponseBuilder](ResponseBuilder.md) - For defining responses
+- [OperationBuilder](../paths/OperationBuilder.md) - Parent builder that uses RequestBodyBuilder
+- [SchemaBuilder](../../../../../../../../capabilities/SchemaBuilder.md) - For defining request schemas
+- [ResponseBuilder](../response/ResponseBuilder.md) - For defining responses
 - [MediaTypeBuilder](MediaTypeBuilder.md) - For configuring media types

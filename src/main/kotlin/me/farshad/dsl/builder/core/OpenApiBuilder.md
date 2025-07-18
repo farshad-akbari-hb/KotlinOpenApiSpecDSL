@@ -254,7 +254,7 @@ val yaml = apiSpec.toYaml()
 
 ## Related Builders
 
-- [InfoBuilder](InfoBuilder.md) - For configuring API information
-- [PathsBuilder](PathsBuilder.md) - For defining API paths
-- [ComponentsBuilder](ComponentsBuilder.md) - For reusable components
-- [ServerBuilder](ServerBuilder.md) - For server configurations
+- [InfoBuilder](../../../../../../../../capabilities/InfoBuilder.md) - For configuring API information
+- [PathsBuilder](../paths/PathsBuilder.md) - For defining API paths
+- [ComponentsBuilder](../components/ComponentsBuilder.md) - For reusable components
+- [ServerBuilder](../../../../../../../../capabilities/ServerBuilder.md) - For server configurations

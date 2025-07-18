@@ -681,7 +681,7 @@ response("301", "Moved Permanently") {
 
 ## Related Builders
 
-- [OperationBuilder](OperationBuilder.md) - Parent builder that uses ResponseBuilder
-- [SchemaBuilder](SchemaBuilder.md) - For defining response schemas
-- [RequestBodyBuilder](RequestBodyBuilder.md) - For defining requests
+- [OperationBuilder](../paths/OperationBuilder.md) - Parent builder that uses ResponseBuilder
+- [SchemaBuilder](../../../../../../../../capabilities/SchemaBuilder.md) - For defining response schemas
+- [RequestBodyBuilder](../../../../../../../../capabilities/RequestBodyBuilder.md) - For defining requests
 - [HeaderBuilder](HeaderBuilder.md) - For configuring response headers

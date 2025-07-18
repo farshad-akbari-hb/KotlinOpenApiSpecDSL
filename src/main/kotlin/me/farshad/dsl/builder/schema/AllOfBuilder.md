@@ -476,4 +476,4 @@ Example validation:
 - [SchemaBuilder](SchemaBuilder.md) - Parent builder that uses AllOfBuilder
 - [OneOfBuilder](OneOfBuilder.md) - For exclusive choice (exactly one must match)
 - [AnyOfBuilder](AnyOfBuilder.md) - For inclusive choice (one or more must match)
-- [ComponentsBuilder](ComponentsBuilder.md) - For defining reusable schemas
+- [ComponentsBuilder](../components/ComponentsBuilder.md) - For defining reusable schemas

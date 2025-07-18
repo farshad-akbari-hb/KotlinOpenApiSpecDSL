@@ -655,7 +655,7 @@ components {
 
 ## Related Builders
 
-- [OpenApiBuilder](OpenApiBuilder.md) - Parent builder that uses ComponentsBuilder
-- [SchemaBuilder](SchemaBuilder.md) - For building individual schemas
-- [ExampleBuilder](ExampleBuilder.md) - For building examples
+- [OpenApiBuilder](../../../../../../../../capabilities/OpenApiBuilder.md) - Parent builder that uses ComponentsBuilder
+- [SchemaBuilder](../../../../../../../../capabilities/SchemaBuilder.md) - For building individual schemas
+- [ExampleBuilder](../../../../../../../../capabilities/ExampleBuilder.md) - For building examples
 - [SecuritySchemeBuilder](SecuritySchemeBuilder.md) - For security schemes

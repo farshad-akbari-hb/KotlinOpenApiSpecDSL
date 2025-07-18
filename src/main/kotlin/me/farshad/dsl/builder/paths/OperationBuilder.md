@@ -684,6 +684,6 @@ post {
 ## Related Builders
 
 - [PathItemBuilder](PathItemBuilder.md) - Parent builder for operations
-- [RequestBodyBuilder](RequestBodyBuilder.md) - For request body configuration
-- [ResponseBuilder](ResponseBuilder.md) - For response configuration
+- [RequestBodyBuilder](../../../../../../../../capabilities/RequestBodyBuilder.md) - For request body configuration
+- [ResponseBuilder](../../../../../../../../capabilities/ResponseBuilder.md) - For response configuration
 - [ParameterBuilder](ParameterBuilder.md) - For parameter configuration

@@ -494,6 +494,6 @@ components {
 ## Related Builders
 
 - [ExamplesBuilder](ExamplesBuilder.md) - For managing multiple examples
-- [ComponentsBuilder](ComponentsBuilder.md) - For defining reusable examples
+- [ComponentsBuilder](../components/ComponentsBuilder.md) - For defining reusable examples
 - [MediaTypeBuilder](MediaTypeBuilder.md) - Where examples are often used
-- [SchemaBuilder](SchemaBuilder.md) - Can include inline examples
+- [SchemaBuilder](../../../../../../../../capabilities/SchemaBuilder.md) - Can include inline examples

@@ -5,35 +5,35 @@ This directory contains comprehensive documentation for all builder classes in t
 ## Builder Classes by Category
 
 ### Core Builders
-- [**OpenApiBuilder**](OpenApiBuilder.md) - Main entry point for creating OpenAPI specifications
+- [**OpenApiBuilder**](../src/main/kotlin/me/farshad/dsl/builder/core/OpenApiBuilder.md) - Main entry point for creating OpenAPI specifications
 
 ### Info Builders
-- [**InfoBuilder**](InfoBuilder.md) - Builds API information metadata
-- [**ContactBuilder**](ContactBuilder.md) - Builds contact information
-- [**ServerBuilder**](ServerBuilder.md) - Builds server configurations with variables
+- [**InfoBuilder**](../src/main/kotlin/me/farshad/dsl/builder/info/InfoBuilder.md) - Builds API information metadata
+- [**ContactBuilder**](../src/main/kotlin/me/farshad/dsl/builder/info/ContactBuilder.md) - Builds contact information
+- [**ServerBuilder**](../src/main/kotlin/me/farshad/dsl/builder/info/ServerBuilder.md) - Builds server configurations with variables
 
 ### Path Builders
-- [**PathsBuilder**](PathsBuilder.md) - Manages API paths and endpoints
-- [**PathItemBuilder**](PathItemBuilder.md) - Builds individual path items with operations
-- [**OperationBuilder**](OperationBuilder.md) - Builds API operations (GET, POST, etc.)
+- [**PathsBuilder**](../src/main/kotlin/me/farshad/dsl/builder/paths/PathsBuilder.md) - Manages API paths and endpoints
+- [**PathItemBuilder**](../src/main/kotlin/me/farshad/dsl/builder/paths/PathItemBuilder.md) - Builds individual path items with operations
+- [**OperationBuilder**](../src/main/kotlin/me/farshad/dsl/builder/paths/OperationBuilder.md) - Builds API operations (GET, POST, etc.)
 
 ### Schema Builders
-- [**SchemaBuilder**](SchemaBuilder.md) - Comprehensive schema definition builder
-- [**OneOfBuilder**](OneOfBuilder.md) - Builds oneOf schema compositions
-- [**AllOfBuilder**](AllOfBuilder.md) - Builds allOf schema compositions
-- [**AnyOfBuilder**](AnyOfBuilder.md) - Builds anyOf schema compositions
-- [**DiscriminatorBuilder**](DiscriminatorBuilder.md) - Configures discriminators for polymorphic types
+- [**SchemaBuilder**](../src/main/kotlin/me/farshad/dsl/builder/schema/SchemaBuilder.md) - Comprehensive schema definition builder
+- [**OneOfBuilder**](../src/main/kotlin/me/farshad/dsl/builder/schema/OneOfBuilder.md) - Builds oneOf schema compositions
+- [**AllOfBuilder**](../src/main/kotlin/me/farshad/dsl/builder/schema/AllOfBuilder.md) - Builds allOf schema compositions
+- [**AnyOfBuilder**](../src/main/kotlin/me/farshad/dsl/builder/schema/AnyOfBuilder.md) - Builds anyOf schema compositions
+- [**DiscriminatorBuilder**](../src/main/kotlin/me/farshad/dsl/builder/schema/DiscriminatorBuilder.md) - Configures discriminators for polymorphic types
 
 ### Request/Response Builders
-- [**RequestBodyBuilder**](RequestBodyBuilder.md) - Builds request body configurations
-- [**ResponseBuilder**](ResponseBuilder.md) - Builds response configurations
+- [**RequestBodyBuilder**](../src/main/kotlin/me/farshad/dsl/builder/request/RequestBodyBuilder.md) - Builds request body configurations
+- [**ResponseBuilder**](../src/main/kotlin/me/farshad/dsl/builder/response/ResponseBuilder.md) - Builds response configurations
 
 ### Component Builders
-- [**ComponentsBuilder**](ComponentsBuilder.md) - Manages reusable components (schemas, examples, etc.)
+- [**ComponentsBuilder**](../src/main/kotlin/me/farshad/dsl/builder/components/ComponentsBuilder.md) - Manages reusable components (schemas, examples, etc.)
 
 ### Example Builders
-- [**ExampleBuilder**](ExampleBuilder.md) - Builds individual examples
-- [**ExamplesBuilder**](ExamplesBuilder.md) - Manages collections of examples
+- [**ExampleBuilder**](../src/main/kotlin/me/farshad/dsl/builder/example/ExampleBuilder.md) - Builds individual examples
+- [**ExamplesBuilder**](../src/main/kotlin/me/farshad/dsl/builder/example/ExamplesBuilder.md) - Manages collections of examples
 
 ## Quick Reference
 
@@ -120,8 +120,8 @@ val yaml = spec.toYaml()
 
 In addition to builders, the library provides annotations for enhancing schema generation:
 
-- [**SchemaDescription**](SchemaDescription.md) - Class-level descriptions for schemas  
-- [**PropertyDescription**](PropertyDescription.md) - Property-level descriptions for schema fields
+- [**SchemaDescription**](../src/main/kotlin/me/farshad/dsl/annotation/SchemaDescription.md) - Class-level descriptions for schemas  
+- [**PropertyDescription**](../src/main/kotlin/me/farshad/dsl/annotation/PropertyDescription.md) - Property-level descriptions for schema fields
 
 ## Package Structure
 
@@ -144,14 +144,14 @@ me.farshad.dsl.
 
 ## Getting Started
 
-1. Start with [OpenApiBuilder](OpenApiBuilder.md) to understand the main entry point
-2. Learn about [SchemaBuilder](SchemaBuilder.md) for defining data models
-3. Explore [PathsBuilder](PathsBuilder.md) and [OperationBuilder](OperationBuilder.md) for API endpoints
-4. Use [ComponentsBuilder](ComponentsBuilder.md) for reusable definitions
+1. Start with [OpenApiBuilder](../src/main/kotlin/me/farshad/dsl/builder/core/OpenApiBuilder.md) to understand the main entry point
+2. Learn about [SchemaBuilder](../src/main/kotlin/me/farshad/dsl/builder/schema/SchemaBuilder.md) for defining data models
+3. Explore [PathsBuilder](../src/main/kotlin/me/farshad/dsl/builder/paths/PathsBuilder.md) and [OperationBuilder](../src/main/kotlin/me/farshad/dsl/builder/paths/OperationBuilder.md) for API endpoints
+4. Use [ComponentsBuilder](../src/main/kotlin/me/farshad/dsl/builder/components/ComponentsBuilder.md) for reusable definitions
 5. Refer to specific builders as needed for detailed configurations
 
 ## Additional Resources
 
 - For schema composition patterns, see the composition builders (OneOf, AllOf, AnyOf)
-- For API examples, check [ExampleBuilder](ExampleBuilder.md) and [ExamplesBuilder](ExamplesBuilder.md)
-- For request/response configuration, see [RequestBodyBuilder](RequestBodyBuilder.md) and [ResponseBuilder](ResponseBuilder.md)
+- For API examples, check [ExampleBuilder](../src/main/kotlin/me/farshad/dsl/builder/example/ExampleBuilder.md) and [ExamplesBuilder](../src/main/kotlin/me/farshad/dsl/builder/example/ExamplesBuilder.md)
+- For request/response configuration, see [RequestBodyBuilder](../src/main/kotlin/me/farshad/dsl/builder/request/RequestBodyBuilder.md) and [ResponseBuilder](../src/main/kotlin/me/farshad/dsl/builder/response/ResponseBuilder.md)

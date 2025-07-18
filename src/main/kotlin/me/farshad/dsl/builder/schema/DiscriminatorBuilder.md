@@ -506,4 +506,4 @@ schema("Circle") {
 - [SchemaBuilder](SchemaBuilder.md) - Parent builder that uses discriminators
 - [OneOfBuilder](OneOfBuilder.md) - Most common companion for discriminators
 - [AllOfBuilder](AllOfBuilder.md) - Used for inheritance patterns
-- [ComponentsBuilder](ComponentsBuilder.md) - Where polymorphic schemas are defined
+- [ComponentsBuilder](../components/ComponentsBuilder.md) - Where polymorphic schemas are defined

@@ -192,4 +192,4 @@ openApi {
 ## Related Builders
 
 - [InfoBuilder](InfoBuilder.md) - Parent builder that uses ContactBuilder
-- [OpenApiBuilder](OpenApiBuilder.md) - Root builder for the entire specification
+- [OpenApiBuilder](../core/OpenApiBuilder.md) - Root builder for the entire specification
