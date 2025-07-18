@@ -25,9 +25,6 @@ class PathItemBuilder
 | `put` | `Operation?` | PUT operation |
 | `delete` | `Operation?` | DELETE operation |
 | `patch` | `Operation?` | PATCH operation |
-| `options` | `Operation?` | OPTIONS operation |
-| `head` | `Operation?` | HEAD operation |
-| `trace` | `Operation?` | TRACE operation |
 
 ## Key Methods
 
@@ -82,62 +79,39 @@ patch {
 }
 ```
 
-#### `options(block: OperationBuilder.() -> Unit)`
-```kotlin
-options {
-    summary = "Get allowed operations"
-    response("200", "Allowed methods") {
-        header("Allow") {
-            description = "Comma-separated list of allowed methods"
-            schema { type = "string" }
-        }
-    }
-}
-```
-
-#### `head(block: OperationBuilder.() -> Unit)`
-```kotlin
-head {
-    summary = "Check resource existence"
-    description = "Same as GET but returns only headers"
-}
-```
-
-#### `trace(block: OperationBuilder.() -> Unit)`
-```kotlin
-trace {
-    summary = "Trace request"
-    description = "Echoes back the received request"
-}
-```
-
 ### Parameter Methods
 
-#### `parameters(block: ParametersBuilder.() -> Unit)`
-Define parameters shared across all operations:
+#### `parameters()`
+Define parameters shared across all operations. Note: Due to current implementation, parameters need to be defined using the `parameter` method directly:
 
 ```kotlin
-parameters {
-    pathParameter("id") {
-        description = "Resource identifier"
-        schema { 
-            type = "string"
-            format = "uuid"
-        }
+parameter {
+    name = "id"
+    location = ParameterLocation.PATH
+    description = "Resource identifier"
+    required = true
+    schema { 
+        type = "string"
+        format = "uuid"
     }
-    headerParameter("X-Request-ID") {
-        description = "Request tracking ID"
-        schema { type = "string" }
-    }
+}
+parameter {
+    name = "X-Request-ID"
+    location = ParameterLocation.HEADER
+    description = "Request tracking ID"
+    schema { type = "string" }
 }
 ```
 
-#### `pathParameter(name: String, block: ParameterBuilder.() -> Unit)`
-Shorthand for adding a path parameter:
+#### Parameter Definition
+Currently, parameters are defined using the `parameter` method:
 
 ```kotlin
-pathParameter("userId") {
+parameter {
+    name = "userId"
+    location = ParameterLocation.PATH
     description = "User identifier"
+    required = true
     schema { type = "string" }
 }
 ```
@@ -155,11 +129,13 @@ path("/products/{productId}") {
     description = "Endpoints for managing individual products"
     
     // Shared parameter for all operations
-    pathParameter("productId") {
+    parameter {
+        name = "productId"
+        location = ParameterLocation.PATH
         description = "Unique product identifier"
+        required = true
         schema {
             type = "string"
-            pattern = "^[A-Z]{3}-[0-9]{6}$"
         }
     }
     
@@ -225,11 +201,16 @@ path("/admin/users/{userId}") {
     
     // Shared parameters
     parameters {
-        pathParameter("userId") {
+        parameter {
+            name = "userId"
+            location = ParameterLocation.PATH
             description = "User ID"
+            required = true
             schema { type = "integer" }
         }
-        headerParameter("X-Admin-Token") {
+        parameter {
+            name = "X-Admin-Token"
+            location = ParameterLocation.HEADER
             description = "Admin authentication token"
             required = true
             schema { type = "string" }
@@ -272,8 +253,11 @@ path("/admin/users/{userId}") {
 
 ```kotlin
 path("/files/{fileId}") {
-    pathParameter("fileId") {
+    parameter {
+        name = "fileId"
+        location = ParameterLocation.PATH
         description = "File identifier"
+        required = true
         schema { 
             type = "string"
             format = "uuid"
@@ -302,22 +286,6 @@ path("/files/{fileId}") {
         response("404", "File not found")
     }
     
-    head {
-        summary = "Get file metadata"
-        description = "Check file existence and get metadata without downloading"
-        response("200", "File exists") {
-            header("Content-Length") {
-                description = "File size in bytes"
-                schema { type = "integer" }
-            }
-            header("Last-Modified") {
-                description = "Last modification date"
-                schema { type = "string" }
-            }
-        }
-        response("404", "File not found")
-    }
-    
     delete {
         summary = "Delete file"
         response("204", "File deleted")
@@ -330,30 +298,33 @@ path("/files/{fileId}") {
 
 ```kotlin
 path("/resources/{id}") {
-    pathParameter("id") {
+    parameter {
+        name = "id"
+        location = ParameterLocation.PATH
         description = "Resource ID"
+        required = true
         schema { type = "string" }
     }
     
     get {
         summary = "Get resource"
-        headerParameter("If-None-Match") {
+        parameter {
+            name = "If-None-Match"
+            location = ParameterLocation.HEADER
             description = "ETag for conditional requests"
             schema { type = "string" }
         }
         response("200", "Resource data") {
             jsonContent(Resource::class)
-            header("ETag") {
-                description = "Resource version identifier"
-                schema { type = "string" }
-            }
         }
         response("304", "Not modified")
     }
     
     put {
         summary = "Update resource"
-        headerParameter("If-Match") {
+        parameter {
+            name = "If-Match"
+            location = ParameterLocation.HEADER
             description = "ETag for optimistic concurrency"
             required = true
             schema { type = "string" }
@@ -364,10 +335,6 @@ path("/resources/{id}") {
         }
         response("200", "Resource updated") {
             jsonContent(Resource::class)
-            header("ETag") {
-                description = "New resource version"
-                schema { type = "string" }
-            }
         }
         response("412", "Precondition failed")
     }
@@ -412,8 +379,18 @@ path("/system/status") {
 path("/items") {
     get {
         summary = "List items"
-        queryParameter("page") { /* pagination */ }
-        queryParameter("limit") { /* pagination */ }
+        parameter {
+            name = "page"
+            location = ParameterLocation.QUERY
+            description = "Page number"
+            schema { type = "integer" }
+        }
+        parameter {
+            name = "limit"
+            location = ParameterLocation.QUERY
+            description = "Items per page"
+            schema { type = "integer" }
+        }
     }
     post {
         summary = "Create new item"
@@ -423,7 +400,12 @@ path("/items") {
 
 // Item operations  
 path("/items/{id}") {
-    pathParameter("id") { /* ... */ }
+    parameter {
+        name = "id"
+        location = ParameterLocation.PATH
+        required = true
+        schema { type = "string" }
+    }
     
     get { summary = "Get specific item" }
     put { summary = "Replace item" }

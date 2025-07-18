@@ -163,10 +163,10 @@ get {
             properties {
                 "users" to schema {
                     type = SchemaType.ARRAY
-                    items = Schema(ref = "#/components/schemas/User")
+                    items = schema { schema(User::class) }
                 }
                 "pagination" to schema {
-                    ref = "#/components/schemas/PaginationInfo"
+                    schema(PaginationInfo::class)
                 }
             }
         }
@@ -190,7 +190,7 @@ post {
     requestBody {
         description = "User data for account creation"
         required = true
-        jsonContent("CreateUserRequest")
+        jsonContent(CreateUserRequest::class)
     }
     
     response("201", "User created successfully") {
@@ -268,7 +268,7 @@ patch {
         required = true
         jsonContent {
             type = SchemaType.OBJECT
-            additionalProperties = Schema(type = SchemaType.STRING)
+            // Note: additionalProperties not supported in current implementation
         }
     }
     
@@ -317,7 +317,7 @@ delete {
                 "error" to schema { type = SchemaType.STRING }
                 "dependencies" to schema {
                     type = SchemaType.ARRAY
-                    items = Schema(type = SchemaType.STRING)
+                    items = schema { type = SchemaType.STRING }
                 }
             }
         }
@@ -379,7 +379,7 @@ get {
             properties {
                 "results" to schema {
                     type = SchemaType.ARRAY
-                    items = Schema(ref = "#/components/schemas/Product")
+                    items = schema { schema(Product::class) }
                 }
                 "totalCount" to schema {
                     type = SchemaType.INTEGER
@@ -421,6 +421,15 @@ get {
 3. **No Convenience Methods**: Helper methods like `queryParameter`, `pathParameter`, etc. are not available.
 
 4. **String References in Security**: Security requirements still use string references to security scheme names.
+
+5. **Missing OpenAPI 3.1 Features**: The following features are not yet implemented:
+   - `deprecated` field for operations
+   - Response headers
+   - Callbacks
+   - External documentation
+   - Server overrides at operation level
+   - Links in responses
+   - Schema properties: `minimum`, `maximum`, `minLength`, `maxLength`, `pattern`, `default`, `additionalProperties`, and others
 
 ## Best Practices
 
@@ -479,13 +488,13 @@ response("400", "Bad Request") {
                     "message" to schema { type = SchemaType.STRING }
                     "details" to schema {
                         type = SchemaType.ARRAY
-                        items = Schema(
-                            type = SchemaType.OBJECT,
-                            properties = mapOf(
-                                "field" to Schema(type = SchemaType.STRING),
-                                "issue" to Schema(type = SchemaType.STRING)
-                            )
-                        )
+                        items = schema {
+                            type = SchemaType.OBJECT
+                            properties {
+                                "field" to schema { type = SchemaType.STRING }
+                                "issue" to schema { type = SchemaType.STRING }
+                            }
+                        }
                     }
                 }
             }

@@ -75,7 +75,7 @@ paths {
             response("200", "Successful response") {
                 jsonContent {
                     type = "array"
-                    items { ref("User") }
+                    items { schema(User::class) }
                 }
             }
         }
@@ -153,7 +153,7 @@ paths {
             response("200", "Task list") {
                 jsonContent {
                     type = "array"
-                    items { ref("Task") }
+                    items { schema(Task::class) }
                 }
             }
         }
@@ -210,11 +210,11 @@ paths {
     path("/v1/products") {
         get {
             summary = "List products (v1)"
-            deprecated = true
+            // Note: deprecated field not yet supported
             response("200", "Product list") {
                 jsonContent {
                     type = "array"
-                    items { ref("ProductV1") }
+                    items { schema(ProductV1::class) }
                 }
             }
         }
@@ -233,13 +233,13 @@ paths {
                 description = "Minimum price filter"
                 schema { 
                     type = "number"
-                    minimum = 0
+                    // Note: minimum not yet supported
                 }
             }
             response("200", "Product list") {
                 jsonContent {
                     type = "array"
-                    items { ref("ProductV2") }
+                    items { schema(ProductV2::class) }
                 }
             }
         }
@@ -381,8 +381,11 @@ paths {
     path("/users/{id}/activate") {
         post {
             summary = "Activate user account"
-            pathParameter("id") {
+            parameter {
+                name = "id"
+                location = ParameterLocation.PATH
                 description = "User ID to activate"
+                required = true
                 schema { type = "string" }
             }
             response("200", "User activated")
@@ -411,7 +414,9 @@ paths {
     path("/products/search") {
         get {
             summary = "Search products"
-            queryParameter("q") {
+            parameter {
+                name = "q"
+                location = ParameterLocation.QUERY
                 description = "Search query"
                 required = true
                 schema { type = "string" }
@@ -420,30 +425,37 @@ paths {
                 description = "Filter by category"
                 schema { type = "string" }
             }
-            queryParameter("minPrice") {
+            parameter {
+                name = "minPrice"
+                location = ParameterLocation.QUERY
                 description = "Minimum price"
                 schema { 
                     type = "number"
-                    minimum = 0
+                    // Note: minimum not yet supported
                 }
             }
-            queryParameter("maxPrice") {
+            parameter {
+                name = "maxPrice"
+                location = ParameterLocation.QUERY
                 description = "Maximum price"
                 schema { type = "number" }
             }
-            queryParameter("page") {
+            parameter {
+                name = "page"
+                location = ParameterLocation.QUERY
                 description = "Page number"
                 schema { 
                     type = "integer"
-                    default = JsonPrimitive(1)
+                    // Note: default not yet supported
                 }
             }
-            queryParameter("limit") {
+            parameter {
+                name = "limit"
+                location = ParameterLocation.QUERY
                 description = "Results per page"
                 schema {
                     type = "integer"
-                    default = JsonPrimitive(20)
-                    maximum = 100
+                    // Note: default and maximum not yet supported
                 }
             }
             response("200", "Search results") {
