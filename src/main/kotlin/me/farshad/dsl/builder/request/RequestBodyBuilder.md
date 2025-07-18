@@ -5,7 +5,7 @@
 
 ## Overview
 
-`RequestBodyBuilder` is responsible for building request body configurations in OpenAPI operations. It defines what data can be sent to an API endpoint, supporting multiple content types and schemas.
+`RequestBodyBuilder` is responsible for building request body configurations in OpenAPI operations. Currently, it only supports JSON content type (`application/json`) with various methods for defining schemas.
 
 ## Class Declaration
 
@@ -19,111 +19,83 @@ class RequestBodyBuilder
 |----------|------|-------------|
 | `description` | `String?` | Description of the request body |
 | `required` | `Boolean` | Whether the request body is required (default: false) |
-| `content` | `MutableMap<String, MediaType>` | Map of content types to media type definitions |
+| `content` | `MutableMap<String, MediaType>` | Map of content types to media type definitions (internal) |
 
 ## Key Methods
 
-### Content Configuration Methods
+### JSON Content Methods
 
-#### `content(mediaType: String, block: MediaTypeBuilder.() -> Unit)`
-Adds content for a specific media type:
-
-```kotlin
-content("application/json") {
-    schema {
-        ref("User")
-    }
-    example = jsonObjectOf(
-        "name" to "John Doe",
-        "email" to "john@example.com"
-    )
-}
-```
-
-### Convenience Methods for Common Content Types
-
-#### `jsonContent(block: SchemaBuilder.() -> Unit)`
-Adds JSON content with inline schema:
+#### `jsonContent(schemaRef: String? = null, block: SchemaBuilder.() -> Unit = {})`
+Adds JSON content with optional schema reference or inline schema:
 
 ```kotlin
+// With schema reference
+jsonContent("User")
+
+// With inline schema
 jsonContent {
-    type = "object"
+    type = SchemaType.OBJECT
     properties {
-        property("name", "string")
-        property("email", "string") {
-            format = "email"
+        "name" to schema {
+            type = SchemaType.STRING
+        }
+        "email" to schema {
+            type = SchemaType.STRING
+            format = SchemaFormat.EMAIL
         }
     }
-    required.addAll(listOf("name", "email"))
+    required = listOf("name", "email")
 }
-```
-
-#### `jsonContent(schemaRef: String)`
-Adds JSON content with schema reference:
-
-```kotlin
-jsonContent("CreateUserRequest")  // References #/components/schemas/CreateUserRequest
 ```
 
 #### `jsonContent(schemaClass: KClass<*>)`
-Adds JSON content using a Kotlin class:
+Adds JSON content using a Kotlin class reference:
 
 ```kotlin
-jsonContent(CreateUserRequest::class)
+jsonContent(User::class)  // References #/components/schemas/User
 ```
 
-#### `xmlContent(block: SchemaBuilder.() -> Unit)`
-Adds XML content:
+#### `jsonContent(schemaClass: KClass<*>, example: Any)`
+Adds JSON content with a Kotlin class reference and an example:
 
 ```kotlin
-xmlContent {
-    type = "object"
-    xml = Xml(name = "User")
-    properties {
-        property("name", "string")
-        property("email", "string")
-    }
-}
+jsonContent(User::class, User("John Doe", "john@example.com"))
 ```
 
-#### `formContent(block: SchemaBuilder.() -> Unit)`
-Adds form URL-encoded content:
+#### `jsonContent(schemaRef: String? = null, example: Any, block: SchemaBuilder.() -> Unit = {})`
+Adds JSON content with schema and example:
 
 ```kotlin
-formContent {
-    type = "object"
-    properties {
-        property("username", "string")
-        property("password", "string")
-        property("rememberMe", "boolean") {
-            default = JsonPrimitive(false)
-        }
-    }
-    required.addAll(listOf("username", "password"))
-}
+jsonContent("User", mapOf("name" to "John", "email" to "john@example.com"))
 ```
 
-#### `multipartContent(block: SchemaBuilder.() -> Unit)`
-Adds multipart form data content:
+### Example Methods
+
+#### `example(value: Any)`
+Sets an example for the JSON content:
 
 ```kotlin
-multipartContent {
-    type = "object"
-    properties {
-        property("file") {
-            type = "string"
-            format = "binary"
-            description = "File to upload"
-        }
-        property("description", "string") {
-            maxLength = 500
-        }
-        property("tags") {
-            type = "array"
-            items { type = "string" }
-        }
+jsonContent(User::class)
+example(mapOf(
+    "name" to "John Doe",
+    "email" to "john@example.com"
+))
+```
+
+#### `examples(block: ExamplesBuilder.() -> Unit)`
+Sets multiple examples for the JSON content:
+
+```kotlin
+jsonContent(User::class)
+examples {
+    example("user1") {
+        summary = "Standard user"
+        value = mapOf("name" to "John", "email" to "john@example.com")
     }
-    required.add("file")
+    example("admin") {
+        summary = "Admin user"
+        value = mapOf("name" to "Admin", "email" to "admin@example.com", "role" to "admin")
+    }
 }
 ```
 
@@ -134,168 +106,104 @@ Builds the final `RequestBody` object with all configurations.
 
 ## Usage Examples
 
-### Basic JSON Request Body
+### Basic JSON Request Body with Schema Reference
 
 ```kotlin
 requestBody {
     description = "User registration data"
     required = true
+    jsonContent("CreateUserRequest")
+}
+```
+
+### JSON Request Body with Kotlin Class
+
+```kotlin
+requestBody {
+    description = "User data"
+    required = true
+    jsonContent(User::class)
+}
+```
+
+### JSON Request Body with Inline Schema
+
+```kotlin
+requestBody {
+    description = "Login credentials"
+    required = true
     
     jsonContent {
-        type = "object"
+        type = SchemaType.OBJECT
         properties {
-            property("username", "string") {
+            "username" to schema {
+                type = SchemaType.STRING
                 minLength = 3
                 maxLength = 30
-                pattern = "^[a-zA-Z0-9_]+$"
             }
-            property("email", "string") {
-                format = "email"
-            }
-            property("password", "string") {
+            "password" to schema {
+                type = SchemaType.STRING
                 minLength = 8
                 description = "Must contain letters and numbers"
             }
-            property("age", "integer") {
-                minimum = 18
-                maximum = 120
-            }
         }
-        required.addAll(listOf("username", "email", "password"))
-        
-        example = jsonObjectOf(
-            "username" to "johndoe",
-            "email" to "john@example.com",
-            "password" to "SecurePass123",
-            "age" to 25
-        )
+        required = listOf("username", "password")
     }
 }
 ```
 
-### Multiple Content Types
+### Request Body with Example
 
 ```kotlin
 requestBody {
-    description = "Product data in multiple formats"
+    description = "Product data"
     required = true
     
-    // JSON format
+    jsonContent(Product::class, Product(
+        name = "Laptop",
+        price = 999.99,
+        category = "Electronics"
+    ))
+}
+```
+
+### Request Body with Multiple Examples
+
+```kotlin
+requestBody {
+    description = "Search query"
+    required = true
+    
     jsonContent {
-        ref("Product")
-        example = jsonObjectOf(
-            "name" to "Laptop",
-            "price" to 999.99,
-            "category" to "Electronics"
-        )
-    }
-    
-    // XML format
-    content("application/xml") {
-        schema {
-            ref("Product")
-        }
-        example = """
-            <Product>
-                <name>Laptop</name>
-                <price>999.99</price>
-                <category>Electronics</category>
-            </Product>
-        """.trimIndent()
-    }
-    
-    // YAML format
-    content("application/x-yaml") {
-        schema {
-            ref("Product")
-        }
-        example = """
-            name: Laptop
-            price: 999.99
-            category: Electronics
-        """.trimIndent()
-    }
-}
-```
-
-### File Upload Request
-
-```kotlin
-requestBody {
-    description = "File upload with metadata"
-    required = true
-    
-    multipartContent {
-        type = "object"
+        type = SchemaType.OBJECT
         properties {
-            // File part
-            property("file") {
-                type = "string"
-                format = "binary"
-                description = "The file to upload"
+            "query" to schema {
+                type = SchemaType.STRING
+                description = "Search terms"
             }
-            
-            // Metadata parts
-            property("fileName", "string") {
-                description = "Original filename"
-                maxLength = 255
+            "filters" to schema {
+                type = SchemaType.OBJECT
+                additionalProperties = Schema(type = SchemaType.STRING)
             }
-            
-            property("fileType", "string") {
-                description = "MIME type"
-                enum = listOf(
-                    "image/jpeg",
-                    "image/png",
-                    "application/pdf",
-                    "text/plain"
+        }
+        required = listOf("query")
+    }
+    
+    examples {
+        example("simple") {
+            summary = "Simple search"
+            value = mapOf("query" to "laptop")
+        }
+        example("filtered") {
+            summary = "Search with filters"
+            value = mapOf(
+                "query" to "laptop",
+                "filters" to mapOf(
+                    "category" to "electronics",
+                    "brand" to "dell"
                 )
-            }
-            
-            property("description", "string") {
-                description = "File description"
-                maxLength = 1000
-            }
-            
-            property("tags") {
-                type = "array"
-                description = "File tags for categorization"
-                items {
-                    type = "string"
-                    maxLength = 50
-                }
-                maxItems = 10
-            }
+            )
         }
-        required.addAll(listOf("file", "fileName", "fileType"))
-    }
-}
-```
-
-### Form Login Request
-
-```kotlin
-requestBody {
-    description = "User login credentials"
-    required = true
-    
-    formContent {
-        type = "object"
-        properties {
-            property("username", "string") {
-                description = "Username or email"
-            }
-            property("password", "string") {
-                description = "User password"
-            }
-            property("rememberMe", "boolean") {
-                description = "Keep user logged in"
-                default = JsonPrimitive(false)
-            }
-            property("captcha", "string") {
-                description = "CAPTCHA response (if required)"
-            }
-        }
-        required.addAll(listOf("username", "password"))
     }
 }
 ```
@@ -308,285 +216,78 @@ requestBody {
     required = true
     
     jsonContent {
-        type = "object"
+        type = SchemaType.OBJECT
         properties {
-            property("customer") {
-                type = "object"
+            "customer" to schema {
+                type = SchemaType.OBJECT
                 properties {
-                    property("id", "string") {
-                        format = "uuid"
+                    "id" to schema {
+                        type = SchemaType.STRING
+                        format = SchemaFormat.UUID
                     }
-                    property("email", "string") {
-                        format = "email"
+                    "email" to schema {
+                        type = SchemaType.STRING
+                        format = SchemaFormat.EMAIL
                     }
-                    property("name", "string")
+                    "name" to schema {
+                        type = SchemaType.STRING
+                    }
                 }
-                required.addAll(listOf("email", "name"))
+                required = listOf("email", "name")
             }
             
-            property("items") {
-                type = "array"
+            "items" to schema {
+                type = SchemaType.ARRAY
                 minItems = 1
-                items {
-                    type = "object"
-                    properties {
-                        property("productId", "string")
-                        property("quantity", "integer") {
+                items = Schema(
+                    type = SchemaType.OBJECT,
+                    properties = mapOf(
+                        "productId" to Schema(type = SchemaType.STRING),
+                        "quantity" to Schema(
+                            type = SchemaType.INTEGER,
                             minimum = 1
-                        }
-                        property("price", "number") {
-                            description = "Unit price at time of order"
+                        ),
+                        "price" to Schema(
+                            type = SchemaType.NUMBER,
                             minimum = 0
-                        }
-                    }
-                    required.addAll(listOf("productId", "quantity", "price"))
-                }
-            }
-            
-            property("shippingAddress") {
-                ref("Address")
-            }
-            
-            property("paymentMethod") {
-                oneOf = listOf(
-                    Schema(ref = "#/components/schemas/CreditCard"),
-                    Schema(ref = "#/components/schemas/PayPal"),
-                    Schema(ref = "#/components/schemas/BankTransfer")
-                )
-                discriminator = Discriminator(propertyName = "type")
-            }
-            
-            property("notes", "string") {
-                description = "Order notes"
-                maxLength = 500
-            }
-        }
-        required.addAll(listOf("customer", "items", "shippingAddress", "paymentMethod"))
-    }
-}
-```
-
-### Request with Examples
-
-```kotlin
-requestBody {
-    description = "Search query"
-    required = true
-    
-    jsonContent {
-        type = "object"
-        properties {
-            property("query", "string") {
-                description = "Search terms"
-            }
-            property("filters") {
-                type = "object"
-                additionalProperties {
-                    type = "string"
-                }
-            }
-            property("sort") {
-                type = "object"
-                properties {
-                    property("field", "string")
-                    property("order", "string") {
-                        enum = listOf("asc", "desc")
-                    }
-                }
-            }
-            property("pagination") {
-                type = "object"
-                properties {
-                    property("page", "integer") { minimum = 1 }
-                    property("limit", "integer") { minimum = 1; maximum = 100 }
-                }
-            }
-        }
-        required.add("query")
-        
-        // Multiple examples
-        examples = mapOf(
-            "simple" to Example(
-                summary = "Simple search",
-                value = jsonObjectOf("query" to "laptop")
-            ),
-            "filtered" to Example(
-                summary = "Search with filters",
-                value = jsonObjectOf(
-                    "query" to "laptop",
-                    "filters" to jsonObjectOf(
-                        "category" to "electronics",
-                        "brand" to "dell"
-                    )
-                )
-            ),
-            "full" to Example(
-                summary = "Search with all options",
-                value = jsonObjectOf(
-                    "query" to "laptop",
-                    "filters" to jsonObjectOf(
-                        "category" to "electronics",
-                        "minPrice" to "500",
-                        "maxPrice" to "1500"
+                        )
                     ),
-                    "sort" to jsonObjectOf(
-                        "field" to "price",
-                        "order" to "asc"
-                    ),
-                    "pagination" to jsonObjectOf(
-                        "page" to 1,
-                        "limit" to 20
-                    )
+                    required = listOf("productId", "quantity", "price")
                 )
-            )
-        )
+            }
+            
+            "shippingAddress" to schema {
+                ref = "#/components/schemas/Address"
+            }
+        }
+        required = listOf("customer", "items", "shippingAddress")
     }
 }
 ```
 
-### Streaming Request Body
+## Current Limitations
 
-```kotlin
-requestBody {
-    description = "Video stream upload"
-    required = true
-    
-    content("application/octet-stream") {
-        schema {
-            type = "string"
-            format = "binary"
-            description = "Raw video data stream"
-        }
-    }
-    
-    content("video/mp4") {
-        schema {
-            type = "string"
-            format = "binary"
-            description = "MP4 video file"
-        }
-    }
-}
-```
+1. **Only JSON Support**: The current implementation only supports `application/json` content type. Other content types like XML, form data, or multipart are not yet implemented.
+
+2. **String References**: The `jsonContent(schemaRef: String?)` method still uses string references, which doesn't provide compile-time safety.
+
+3. **No MediaType Builder**: Direct MediaType configuration is not exposed through a builder pattern.
+
+4. **Limited Content Negotiation**: Cannot specify multiple content types for the same request body.
 
 ## Best Practices
 
-1. **Always describe request bodies**: Provide clear descriptions of what data is expected.
+1. **Use Class References When Possible**: Prefer `jsonContent(MyClass::class)` over string references for better type safety.
 
-2. **Mark required appropriately**: Set `required = true` for endpoints that need a body.
+2. **Provide Examples**: Include realistic examples to help API consumers understand the expected data format.
 
-3. **Use schema references**: For complex types, define in components and reference.
+3. **Set Required Appropriately**: Mark request bodies as required when the endpoint cannot function without them.
 
-4. **Provide examples**: Include realistic examples to help API consumers.
+4. **Use Schema References for Reusable Types**: Define complex types in components and reference them rather than repeating inline schemas.
 
-5. **Support appropriate content types**: Only include content types your API actually accepts.
-
-6. **Validate thoroughly**: Use schema constraints to validate input data.
-
-## Common Patterns
-
-### PATCH Request Pattern
-
-```kotlin
-requestBody {
-    description = "Partial update using JSON Patch"
-    required = true
-    
-    content("application/json-patch+json") {
-        schema {
-            type = "array"
-            items {
-                type = "object"
-                properties {
-                    property("op", "string") {
-                        enum = listOf("add", "remove", "replace", "move", "copy", "test")
-                    }
-                    property("path", "string")
-                    property("value") {
-                        description = "The value to apply"
-                    }
-                    property("from", "string") {
-                        description = "Source path for move/copy operations"
-                    }
-                }
-                required.addAll(listOf("op", "path"))
-            }
-        }
-    }
-}
-```
-
-### Bulk Operations Pattern
-
-```kotlin
-requestBody {
-    description = "Bulk operation request"
-    required = true
-    
-    jsonContent {
-        type = "object"
-        properties {
-            property("operations") {
-                type = "array"
-                items {
-                    type = "object"
-                    properties {
-                        property("action", "string") {
-                            enum = listOf("create", "update", "delete")
-                        }
-                        property("resource", "string")
-                        property("data") {
-                            description = "Operation-specific data"
-                        }
-                    }
-                    required.allAll(listOf("action", "resource"))
-                }
-                minItems = 1
-                maxItems = 100
-            }
-        }
-        required.add("operations")
-    }
-}
-```
-
-### Conditional Content Pattern
-
-```kotlin
-// Different schemas based on a type field
-requestBody {
-    required = true
-    
-    jsonContent {
-        oneOf = listOf(
-            Schema(
-                type = "object",
-                properties = mapOf(
-                    "type" to Schema(type = "string", const = JsonPrimitive("email")),
-                    "to" to Schema(type = "string", format = "email"),
-                    "subject" to Schema(type = "string"),
-                    "body" to Schema(type = "string")
-                ),
-                required = listOf("type", "to", "subject", "body")
-            ),
-            Schema(
-                type = "object",
-                properties = mapOf(
-                    "type" to Schema(type = "string", const = JsonPrimitive("sms")),
-                    "phoneNumber" to Schema(type = "string"),
-                    "message" to Schema(type = "string", maxLength = 160)
-                ),
-                required = listOf("type", "phoneNumber", "message")
-            )
-        )
-        discriminator = Discriminator(propertyName = "type")
-    }
-}
-```
-
-## Related Builders
+## Related Components
 
 - [OperationBuilder](../paths/OperationBuilder.md) - Parent builder that uses RequestBodyBuilder
-- [SchemaBuilder](../../../../../../../../capabilities/SchemaBuilder.md) - For defining request schemas
+- [SchemaBuilder](../schema/SchemaBuilder.md) - For defining request schemas
 - [ResponseBuilder](../response/ResponseBuilder.md) - For defining responses
-- [MediaTypeBuilder](MediaTypeBuilder.md) - For configuring media types
+- [ExamplesBuilder](../example/ExamplesBuilder.md) - For adding multiple examples

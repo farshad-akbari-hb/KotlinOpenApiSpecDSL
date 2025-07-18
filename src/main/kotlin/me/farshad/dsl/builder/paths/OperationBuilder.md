@@ -20,78 +20,45 @@ class OperationBuilder
 | `operationId` | `String?` | Unique identifier for the operation |
 | `summary` | `String?` | Short summary of the operation |
 | `description` | `String?` | Detailed description of the operation |
-| `tags` | `List<String>?` | Tags for API documentation grouping |
+| `tags` | `MutableList<String>` | Tags for API documentation grouping |
 | `parameters` | `MutableList<Parameter>` | Operation parameters |
 | `requestBody` | `RequestBody?` | Request body configuration |
 | `responses` | `MutableMap<String, Response>` | Response definitions by status code |
-| `deprecated` | `Boolean` | Whether the operation is deprecated |
-| `security` | `List<Map<String, List<String>>>?` | Security requirements |
-| `externalDocs` | `ExternalDocumentation?` | External documentation link |
-| `callbacks` | `Map<String, Callback>?` | Callback definitions |
-| `servers` | `List<Server>?` | Operation-specific servers |
+| `security` | `MutableList<Map<String, List<String>>>` | Security requirements |
 
 ## Key Methods
 
 ### Parameter Methods
 
-#### `parameter(name: String, location: ParameterLocation, block: ParameterBuilder.() -> Unit)`
-Adds a parameter with full configuration:
+#### `parameter(name: String, location: ParameterLocation, type: PropertyType, required: Boolean = false, description: String? = null, format: SchemaFormat? = null)`
+Adds a parameter directly:
 
 ```kotlin
-parameter("limit", ParameterLocation.QUERY) {
-    description = "Maximum number of results"
-    schema {
-        type = "integer"
-        minimum = 1
-        maximum = 100
-        default = JsonPrimitive(20)
-    }
-}
-```
+parameter(
+    name = "limit",
+    location = ParameterLocation.QUERY,
+    type = PropertyType.INTEGER,
+    required = false,
+    description = "Maximum number of results",
+    format = SchemaFormat.INT32
+)
 
-#### `queryParameter(name: String, block: ParameterBuilder.() -> Unit)`
-Adds a query parameter:
-
-```kotlin
-queryParameter("search") {
-    description = "Search term"
-    required = true
-    schema { type = "string" }
-}
-```
-
-#### `pathParameter(name: String, block: ParameterBuilder.() -> Unit)`
-Adds a path parameter:
-
-```kotlin
-pathParameter("userId") {
+parameter(
+    name = "userId",
+    location = ParameterLocation.PATH,
+    type = PropertyType.STRING,
+    required = true,
     description = "User identifier"
-    schema {
-        type = "string"
-        format = "uuid"
-    }
-}
+)
 ```
 
-#### `headerParameter(name: String, block: ParameterBuilder.() -> Unit)`
-Adds a header parameter:
+### Tag Methods
+
+#### `tags(vararg tagNames: String)`
+Adds tags to the operation:
 
 ```kotlin
-headerParameter("X-API-Key") {
-    description = "API authentication key"
-    required = true
-    schema { type = "string" }
-}
-```
-
-#### `cookieParameter(name: String, block: ParameterBuilder.() -> Unit)`
-Adds a cookie parameter:
-
-```kotlin
-cookieParameter("session_id") {
-    description = "Session identifier"
-    schema { type = "string" }
-}
+tags("Users", "Admin")
 ```
 
 ### Request Body Methods
@@ -115,32 +82,31 @@ Defines a response:
 ```kotlin
 response("200", "Successful operation") {
     jsonContent(User::class)
-    header("X-Rate-Limit-Remaining") {
-        description = "Remaining requests in window"
-        schema { type = "integer" }
+}
+
+response("404", "User not found") {
+    jsonContent {
+        type = SchemaType.OBJECT
+        properties {
+            "error" to schema {
+                type = SchemaType.STRING
+            }
+            "message" to schema {
+                type = SchemaType.STRING
+            }
+        }
     }
 }
 ```
 
-#### `jsonResponse(code: String, description: String, schemaRef: String)`
-Quick method for JSON responses with schema reference:
+### Security Methods
+
+#### `security(scheme: String, vararg scopes: String)`
+Adds security requirements to the operation:
 
 ```kotlin
-jsonResponse("200", "User data", "User")
-```
-
-#### `jsonResponse(code: String, description: String, schemaClass: KClass<*>)`
-Quick method for JSON responses with class reference:
-
-```kotlin
-jsonResponse("200", "User data", User::class)
-```
-
-#### `emptyResponse(code: String, description: String)`
-Defines an empty response:
-
-```kotlin
-emptyResponse("204", "Resource deleted successfully")
+security("bearerAuth")
+security("oauth2", "read:users", "write:users")
 ```
 
 ### Other Methods
@@ -159,61 +125,50 @@ get {
     operationId = "listUsers"
     summary = "List all users"
     description = "Retrieve a paginated list of users with optional filtering"
-    tags = listOf("Users")
+    tags("Users")
     
     // Query parameters for filtering and pagination
-    queryParameter("page") {
+    parameter(
+        name = "page",
+        location = ParameterLocation.QUERY,
+        type = PropertyType.INTEGER,
         description = "Page number (1-based)"
-        schema {
-            type = "integer"
-            minimum = 1
-            default = JsonPrimitive(1)
-        }
-    }
+    )
     
-    queryParameter("limit") {
+    parameter(
+        name = "limit",
+        location = ParameterLocation.QUERY,
+        type = PropertyType.INTEGER,
         description = "Results per page"
-        schema {
-            type = "integer"
-            minimum = 1
-            maximum = 100
-            default = JsonPrimitive(20)
-        }
-    }
+    )
     
-    queryParameter("status") {
+    parameter(
+        name = "status",
+        location = ParameterLocation.QUERY,
+        type = PropertyType.STRING,
         description = "Filter by user status"
-        schema {
-            type = "string"
-            enum = listOf("active", "inactive", "pending")
-        }
-    }
+    )
     
-    queryParameter("search") {
+    parameter(
+        name = "search",
+        location = ParameterLocation.QUERY,
+        type = PropertyType.STRING,
         description = "Search in name and email"
-        schema {
-            type = "string"
-            minLength = 3
-        }
-    }
+    )
     
     // Responses
     response("200", "Successful response") {
         jsonContent {
-            type = "object"
+            type = SchemaType.OBJECT
             properties {
-                property("users") {
-                    type = "array"
-                    items { ref("User") }
+                "users" to schema {
+                    type = SchemaType.ARRAY
+                    items = Schema(ref = "#/components/schemas/User")
                 }
-                property("pagination") {
-                    ref("PaginationInfo")
+                "pagination" to schema {
+                    ref = "#/components/schemas/PaginationInfo"
                 }
             }
-        }
-        header("X-Total-Count") {
-            description = "Total number of users"
-            schema { type = "integer" }
         }
     }
     
@@ -230,32 +185,16 @@ post {
     operationId = "createUser"
     summary = "Create a new user"
     description = "Create a new user account with the provided information"
-    tags = listOf("Users")
+    tags("Users")
     
     requestBody {
         description = "User data for account creation"
         required = true
-        jsonContent {
-            ref("CreateUserRequest")
-            example = jsonObjectOf(
-                "username" to "johndoe",
-                "email" to "john@example.com",
-                "password" to "SecurePass123!",
-                "profile" to jsonObjectOf(
-                    "firstName" to "John",
-                    "lastName" to "Doe"
-                )
-            )
-        }
+        jsonContent("CreateUserRequest")
     }
     
     response("201", "User created successfully") {
-        description = "Returns the created user with generated ID"
         jsonContent(User::class)
-        header("Location") {
-            description = "URL of the created resource"
-            schema { type = "string" }
-        }
     }
     
     response("400", "Invalid user data") {
@@ -275,21 +214,23 @@ put {
     operationId = "updateUser"
     summary = "Update user"
     description = "Replace entire user data"
-    tags = listOf("Users")
+    tags("Users")
     
-    pathParameter("userId") {
+    parameter(
+        name = "userId",
+        location = ParameterLocation.PATH,
+        type = PropertyType.STRING,
+        required = true,
         description = "User ID to update"
-        schema {
-            type = "string"
-            format = "uuid"
-        }
-    }
+    )
     
-    headerParameter("If-Match") {
+    parameter(
+        name = "If-Match",
+        location = ParameterLocation.HEADER,
+        type = PropertyType.STRING,
+        required = true,
         description = "ETag for optimistic concurrency control"
-        required = true
-        schema { type = "string" }
-    }
+    )
     
     requestBody {
         required = true
@@ -298,10 +239,6 @@ put {
     
     response("200", "User updated") {
         jsonContent(User::class)
-        header("ETag") {
-            description = "New entity tag"
-            schema { type = "string" }
-        }
     }
     
     response("404", "User not found")
@@ -316,44 +253,22 @@ put {
 patch {
     operationId = "patchUser"
     summary = "Partially update user"
-    description = "Update specific user fields using JSON Patch"
-    tags = listOf("Users")
+    description = "Update specific user fields"
+    tags("Users")
     
-    pathParameter("userId") {
+    parameter(
+        name = "userId",
+        location = ParameterLocation.PATH,
+        type = PropertyType.STRING,
+        required = true,
         description = "User ID to update"
-        schema { type = "string" }
-    }
+    )
     
     requestBody {
         required = true
-        content("application/json-patch+json") {
-            schema {
-                type = "array"
-                items {
-                    type = "object"
-                    properties {
-                        property("op") {
-                            type = "string"
-                            enum = listOf("add", "remove", "replace", "move", "copy", "test")
-                        }
-                        property("path") {
-                            type = "string"
-                            description = "JSON Pointer"
-                        }
-                        property("value") {
-                            description = "The value to apply"
-                        }
-                    }
-                    required = listOf("op", "path")
-                }
-                example = jsonArrayOf(
-                    jsonObjectOf(
-                        "op" to "replace",
-                        "path" to "/email",
-                        "value" to "newemail@example.com"
-                    )
-                )
-            }
+        jsonContent {
+            type = SchemaType.OBJECT
+            additionalProperties = Schema(type = SchemaType.STRING)
         }
     }
     
@@ -373,20 +288,23 @@ delete {
     operationId = "deleteUser"
     summary = "Delete user"
     description = "Permanently delete a user account"
-    tags = listOf("Users")
+    tags("Users")
     
-    pathParameter("userId") {
+    parameter(
+        name = "userId",
+        location = ParameterLocation.PATH,
+        type = PropertyType.STRING,
+        required = true,
         description = "User ID to delete"
-        schema { type = "string" }
-    }
+    )
     
-    queryParameter("force") {
+    parameter(
+        name = "force",
+        location = ParameterLocation.QUERY,
+        type = PropertyType.BOOLEAN,
+        required = false,
         description = "Force deletion even with existing data"
-        schema {
-            type = "boolean"
-            default = JsonPrimitive(false)
-        }
-    }
+    )
     
     response("204", "User deleted successfully")
     
@@ -394,12 +312,12 @@ delete {
     
     response("409", "Cannot delete - user has dependencies") {
         jsonContent {
-            type = "object"
+            type = SchemaType.OBJECT
             properties {
-                property("error") { type = "string" }
-                property("dependencies") {
-                    type = "array"
-                    items { type = "string" }
+                "error" to schema { type = SchemaType.STRING }
+                "dependencies" to schema {
+                    type = SchemaType.ARRAY
+                    items = Schema(type = SchemaType.STRING)
                 }
             }
         }
@@ -409,125 +327,66 @@ delete {
 
 ### Advanced Operation Examples
 
-#### File Upload Operation
-
-```kotlin
-post {
-    operationId = "uploadFile"
-    summary = "Upload a file"
-    description = "Upload a file with metadata"
-    tags = listOf("Files")
-    
-    requestBody {
-        required = true
-        multipartContent {
-            property("file") {
-                type = "string"
-                format = "binary"
-                description = "The file to upload"
-            }
-            property("metadata") {
-                type = "object"
-                properties {
-                    property("description") { type = "string" }
-                    property("tags") {
-                        type = "array"
-                        items { type = "string" }
-                    }
-                }
-            }
-        }
-    }
-    
-    response("201", "File uploaded") {
-        jsonContent(FileInfo::class)
-    }
-    
-    response("413", "File too large") {
-        jsonContent(Error::class)
-    }
-}
-```
-
-#### Streaming Response Operation
+#### Operation with Multiple Parameters
 
 ```kotlin
 get {
-    operationId = "streamEvents"
-    summary = "Stream real-time events"
-    description = "Server-sent events stream"
-    tags = listOf("Events")
+    operationId = "searchProducts"
+    summary = "Search products"
+    description = "Search products with multiple filters"
+    tags("Products")
     
-    queryParameter("types") {
-        description = "Event types to include"
-        style = ParameterStyle.FORM
-        explode = true
-        schema {
-            type = "array"
-            items { type = "string" }
-        }
-    }
-    
-    response("200", "Event stream") {
-        content("text/event-stream") {
-            schema {
-                type = "string"
-                description = "Server-sent events stream"
-            }
-        }
-    }
-}
-```
-
-#### Webhook Callback Operation
-
-```kotlin
-post {
-    operationId = "createSubscription"
-    summary = "Create webhook subscription"
-    tags = listOf("Webhooks")
-    
-    requestBody {
-        required = true
-        jsonContent {
-            type = "object"
-            properties {
-                property("url") {
-                    type = "string"
-                    format = "uri"
-                }
-                property("events") {
-                    type = "array"
-                    items { type = "string" }
-                }
-            }
-        }
-    }
-    
-    response("201", "Subscription created") {
-        jsonContent(Subscription::class)
-    }
-    
-    callbacks = mapOf(
-        "statusUpdate" to mapOf(
-            "{$request.body#/url}" to PathItem(
-                post = Operation(
-                    summary = "Webhook notification",
-                    requestBody = RequestBody(
-                        required = true,
-                        content = mapOf(
-                            "application/json" to MediaType(
-                                schema = Schema(ref = "#/components/schemas/WebhookPayload")
-                            )
-                        )
-                    ),
-                    responses = mapOf(
-                        "200" to Response(description = "Notification received")
-                    )
-                )
-            )
-        )
+    // Multiple query parameters
+    parameter(
+        name = "q",
+        location = ParameterLocation.QUERY,
+        type = PropertyType.STRING,
+        required = true,
+        description = "Search query"
     )
+    
+    parameter(
+        name = "category",
+        location = ParameterLocation.QUERY,
+        type = PropertyType.STRING,
+        description = "Product category"
+    )
+    
+    parameter(
+        name = "minPrice",
+        location = ParameterLocation.QUERY,
+        type = PropertyType.NUMBER,
+        description = "Minimum price"
+    )
+    
+    parameter(
+        name = "maxPrice",
+        location = ParameterLocation.QUERY,
+        type = PropertyType.NUMBER,
+        description = "Maximum price"
+    )
+    
+    parameter(
+        name = "inStock",
+        location = ParameterLocation.QUERY,
+        type = PropertyType.BOOLEAN,
+        description = "Only show in-stock items"
+    )
+    
+    response("200", "Search results") {
+        jsonContent {
+            type = SchemaType.OBJECT
+            properties {
+                "results" to schema {
+                    type = SchemaType.ARRAY
+                    items = Schema(ref = "#/components/schemas/Product")
+                }
+                "totalCount" to schema {
+                    type = SchemaType.INTEGER
+                }
+            }
+        }
+    }
 }
 ```
 
@@ -537,14 +396,12 @@ post {
 get {
     operationId = "getSecureData"
     summary = "Get secure data"
-    tags = listOf("Secure")
+    tags("Secure")
     
-    // Multiple security options (any one can be used)
-    security = listOf(
-        mapOf("bearerAuth" to emptyList()),
-        mapOf("apiKey" to emptyList()),
-        mapOf("oauth2" to listOf("read:data"))
-    )
+    // Add security requirements
+    security("bearerAuth")
+    // Or with scopes
+    security("oauth2", "read:data", "read:profile")
     
     response("200", "Secure data") {
         jsonContent(SecureData::class)
@@ -555,29 +412,15 @@ get {
 }
 ```
 
-### Deprecated Operation
+## Current Limitations
 
-```kotlin
-get {
-    operationId = "getOldEndpoint"
-    summary = "Get data (deprecated)"
-    description = "This endpoint is deprecated. Use /v2/data instead."
-    deprecated = true
-    tags = listOf("Deprecated")
-    
-    response("200", "Data") {
-        jsonContent(OldDataFormat::class)
-        header("Sunset") {
-            description = "Deprecation date"
-            schema { type = "string" }
-        }
-        header("Link") {
-            description = "Link to new endpoint"
-            schema { type = "string" }
-        }
-    }
-}
-```
+1. **No ParameterBuilder**: Parameters are created directly with limited configuration options. Complex parameter schemas require manual construction.
+
+2. **Limited Parameter Configuration**: The current `parameter` method doesn't support all OpenAPI parameter features like `style`, `explode`, `allowEmptyValue`, etc.
+
+3. **No Convenience Methods**: Helper methods like `queryParameter`, `pathParameter`, etc. are not available.
+
+4. **String References in Security**: Security requirements still use string references to security scheme names.
 
 ## Best Practices
 
@@ -600,27 +443,26 @@ get {
 ### Pagination Pattern
 
 ```kotlin
-queryParameter("page") {
-    description = "Page number"
-    schema {
-        type = "integer"
-        minimum = 1
-        default = JsonPrimitive(1)
-    }
-}
-queryParameter("pageSize") {
+parameter(
+    name = "page",
+    location = ParameterLocation.QUERY,
+    type = PropertyType.INTEGER,
+    description = "Page number (1-based)"
+)
+
+parameter(
+    name = "pageSize",
+    location = ParameterLocation.QUERY,
+    type = PropertyType.INTEGER,
     description = "Items per page"
-    schema {
-        type = "integer"
-        minimum = 1
-        maximum = 100
-        default = JsonPrimitive(20)
-    }
-}
-queryParameter("sort") {
+)
+
+parameter(
+    name = "sort",
+    location = ParameterLocation.QUERY,
+    type = PropertyType.STRING,
     description = "Sort field and direction (e.g., 'name:asc')"
-    schema { type = "string" }
-}
+)
 ```
 
 ### Error Response Pattern
@@ -628,22 +470,22 @@ queryParameter("sort") {
 ```kotlin
 response("400", "Bad Request") {
     jsonContent {
-        type = "object"
+        type = SchemaType.OBJECT
         properties {
-            property("error") {
-                type = "object"
+            "error" to schema {
+                type = SchemaType.OBJECT
                 properties {
-                    property("code") { type = "string" }
-                    property("message") { type = "string" }
-                    property("details") {
-                        type = "array"
-                        items {
-                            type = "object"
-                            properties {
-                                property("field") { type = "string" }
-                                property("issue") { type = "string" }
-                            }
-                        }
+                    "code" to schema { type = SchemaType.STRING }
+                    "message" to schema { type = SchemaType.STRING }
+                    "details" to schema {
+                        type = SchemaType.ARRAY
+                        items = Schema(
+                            type = SchemaType.OBJECT,
+                            properties = mapOf(
+                                "field" to Schema(type = SchemaType.STRING),
+                                "issue" to Schema(type = SchemaType.STRING)
+                            )
+                        )
                     }
                 }
             }
@@ -666,16 +508,12 @@ post {
     
     response("202", "Job accepted") {
         jsonContent {
-            type = "object"
+            type = SchemaType.OBJECT
             properties {
-                property("jobId") { type = "string" }
-                property("status") { type = "string" }
-                property("statusUrl") { type = "string" }
+                "jobId" to schema { type = SchemaType.STRING }
+                "status" to schema { type = SchemaType.STRING }
+                "statusUrl" to schema { type = SchemaType.STRING }
             }
-        }
-        header("Location") {
-            description = "URL to check job status"
-            schema { type = "string" }
         }
     }
 }
@@ -684,6 +522,6 @@ post {
 ## Related Builders
 
 - [PathItemBuilder](PathItemBuilder.md) - Parent builder for operations
-- [RequestBodyBuilder](../../../../../../../../capabilities/RequestBodyBuilder.md) - For request body configuration
-- [ResponseBuilder](../../../../../../../../capabilities/ResponseBuilder.md) - For response configuration
-- [ParameterBuilder](ParameterBuilder.md) - For parameter configuration
+- [RequestBodyBuilder](../request/RequestBodyBuilder.md) - For request body configuration
+- [ResponseBuilder](../response/ResponseBuilder.md) - For response configuration
+- [SchemaBuilder](../schema/SchemaBuilder.md) - For defining schemas
