@@ -67,4 +67,5 @@ object JsonElementYamlSerializer : KSerializer<JsonElement> {
 val yamlSerializersModule =
     SerializersModule {
         contextual(JsonElementYamlSerializer)
+        contextual(ListSerializer(JsonElementYamlSerializer))
     }

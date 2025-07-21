@@ -1,6 +1,7 @@
 package me.farshad.dsl.spec
 
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import me.farshad.dsl.builder.schema.SchemaReference
@@ -170,7 +171,7 @@ data class Parameter(
     val description: String? = null,
     val required: Boolean = false,
     val schema: Schema? = null,
-    val example: JsonElement? = null,
+    @Contextual val example: JsonElement? = null,
     val examples: Map<String, Example>? = null,
 )
 
@@ -191,14 +192,14 @@ data class Response(
 data class Example(
     val summary: String? = null,
     val description: String? = null,
-    val value: JsonElement? = null,
+    @Contextual val value: JsonElement? = null,
     val externalValue: String? = null,
 )
 
 @Serializable(with = MediaTypeSerializer::class)
 data class MediaType(
     val schema: Schema? = null,
-    val example: JsonElement? = null,
+    @Contextual val example: JsonElement? = null,
     val examples: Map<String, Example>? = null,
 )
 
@@ -212,14 +213,14 @@ data class Schema(
     @SerialName("\$ref")
     val ref: String? = null,
     @SerialName("enum")
-    val enumValues: List<JsonElement>? = null,
+    @Contextual val enumValues: List<JsonElement>? = null,
     val oneOf: List<SchemaReference>? = null,
     val allOf: List<SchemaReference>? = null,
     val anyOf: List<SchemaReference>? = null,
     val not: SchemaReference? = null,
     val discriminator: Discriminator? = null,
     val description: String? = null,
-    val example: JsonElement? = null,
+    @Contextual val example: JsonElement? = null,
     val examples: Map<String, Example>? = null,
 )
 
