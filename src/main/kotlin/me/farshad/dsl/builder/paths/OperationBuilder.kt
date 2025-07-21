@@ -1,5 +1,6 @@
 package me.farshad.dsl.builder.paths
 
+import kotlinx.serialization.json.JsonElement
 import me.farshad.dsl.builder.request.RequestBodyBuilder
 import me.farshad.dsl.builder.response.ResponseBuilder
 import me.farshad.dsl.spec.Operation
@@ -33,6 +34,7 @@ class OperationBuilder {
         required: Boolean = false,
         description: String? = null,
         format: SchemaFormat? = null,
+        example: JsonElement? = null,
     ) {
         parameters.add(
             Parameter(
@@ -54,6 +56,7 @@ class OperationBuilder {
                             },
                         format = format,
                     ),
+                example = example,
             ),
         )
     }
