@@ -1,6 +1,7 @@
 package me.farshad.dsl.builder.paths
 
-import me.farshad.dsl.builder.paths.OperationBuilder
+import kotlinx.serialization.json.JsonPrimitive
+import me.farshad.dsl.spec.Example
 import me.farshad.dsl.spec.ParameterLocation
 import me.farshad.dsl.spec.PropertyType
 import me.farshad.dsl.spec.SchemaFormat
@@ -312,5 +313,117 @@ class OperationBuilderTest {
 
         assertNotNull(operation.security)
         assertEquals(3, operation.security?.size)
+    }
+
+    @Test
+    fun testParameterWithMultipleExamples() {
+        val operationBuilder = OperationBuilder()
+        val examples = mapOf(
+            "validUser" to Example(
+                summary = "Valid user ID",
+                value = JsonPrimitive("user-123")
+            ),
+            "adminUser" to Example(
+                summary = "Admin user ID",
+                value = JsonPrimitive("admin-456")
+            )
+        )
+
+        operationBuilder.parameter(
+            name = "userId",
+            location = ParameterLocation.PATH,
+            type = PropertyType.STRING,
+            required = true,
+            description = "User identifier",
+            examples = examples
+        )
+
+        val operation = operationBuilder.build()
+        val parameter = operation.parameters?.first()
+
+        assertNotNull(parameter)
+        assertEquals("userId", parameter.name)
+        assertNotNull(parameter.examples)
+        assertEquals(2, parameter.examples?.size)
+        assertEquals("Valid user ID", parameter.examples?.get("validUser")?.summary)
+        assertEquals("Admin user ID", parameter.examples?.get("adminUser")?.summary)
+    }
+
+    @Test
+    fun testParameterWithBothExampleAndExamples() {
+        val operationBuilder = OperationBuilder()
+        val examples = mapOf(
+            "example1" to Example(
+                value = JsonPrimitive("example-1")
+            ),
+            "example2" to Example(
+                value = JsonPrimitive("example-2")
+            )
+        )
+
+        operationBuilder.parameter(
+            name = "testParam",
+            location = ParameterLocation.HEADER,
+            type = PropertyType.STRING,
+            examples = examples
+        )
+
+        val operation = operationBuilder.build()
+        val parameter = operation.parameters?.first()
+
+        assertNotNull(parameter)
+        assertEquals(examples, parameter.examples)
+    }
+
+
+    @Test
+    fun testCompleteOperationWithParameterExamples() {
+        val operationBuilder = OperationBuilder()
+        operationBuilder.summary = "Search users"
+        operationBuilder.operationId = "searchUsers"
+
+        // Path parameter with example
+        operationBuilder.parameter(
+            name = "organizationId",
+            location = ParameterLocation.PATH,
+            type = PropertyType.STRING,
+            required = true,
+            description = "Organization ID",
+        )
+
+        // Query parameter with multiple examples
+        operationBuilder.parameter(
+            name = "role",
+            location = ParameterLocation.QUERY,
+            type = PropertyType.STRING,
+            description = "Filter by user role",
+            examples = mapOf(
+                "admin" to Example(
+                    summary = "Admin role",
+                    value = JsonPrimitive("admin")
+                ),
+                "user" to Example(
+                    summary = "Regular user role",
+                    value = JsonPrimitive("user")
+                ),
+                "guest" to Example(
+                    summary = "Guest role",
+                    value = JsonPrimitive("guest")
+                )
+            )
+        )
+
+        operationBuilder.response("200", "Success")
+
+        val operation = operationBuilder.build()
+
+        assertEquals("Search users", operation.summary)
+        assertEquals(2, operation.parameters?.size)
+
+        val pathParam = operation.parameters?.find { it.name == "organizationId" }
+
+        val queryParam = operation.parameters?.find { it.name == "role" }
+        assertNotNull(queryParam?.examples)
+        assertEquals(3, queryParam?.examples?.size)
     }
 }
