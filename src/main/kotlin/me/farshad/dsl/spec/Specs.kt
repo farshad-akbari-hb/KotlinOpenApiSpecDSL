@@ -185,6 +185,7 @@ data class RequestBody(
 data class Response(
     val description: String,
     val content: Map<String, MediaType>? = null,
+    val headers: Map<String, Header>? = null,
 )
 
 @Serializable(with = ExampleSerializer::class)
@@ -242,4 +243,14 @@ data class SecurityScheme(
     val scheme: String? = null,
     val bearerFormat: String? = null,
     val description: String? = null,
+)
+
+@Serializable
+data class Header(
+    val description: String? = null,
+    val required: Boolean = false,
+    val deprecated: Boolean = false,
+    val schema: Schema? = null,
+    @Contextual val example: JsonElement? = null,
+    val examples: Map<String, Example>? = null,
 )
