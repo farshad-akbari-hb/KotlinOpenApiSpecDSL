@@ -1,8 +1,8 @@
 package me.farshad.dsl.builder.paths
 
-import kotlinx.serialization.json.JsonElement
 import me.farshad.dsl.builder.request.RequestBodyBuilder
 import me.farshad.dsl.builder.response.ResponseBuilder
+import me.farshad.dsl.spec.Example
 import me.farshad.dsl.spec.Operation
 import me.farshad.dsl.spec.Parameter
 import me.farshad.dsl.spec.ParameterLocation
@@ -34,7 +34,7 @@ class OperationBuilder {
         required: Boolean = false,
         description: String? = null,
         format: SchemaFormat? = null,
-        example: JsonElement? = null,
+        examples: Map<String,Example>? = null,
     ) {
         parameters.add(
             Parameter(
@@ -56,7 +56,7 @@ class OperationBuilder {
                             },
                         format = format,
                     ),
-                example = example,
+                examples = examples,
             ),
         )
     }

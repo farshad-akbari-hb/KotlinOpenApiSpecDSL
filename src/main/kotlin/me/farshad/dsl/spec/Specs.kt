@@ -171,7 +171,6 @@ data class Parameter(
     val description: String? = null,
     val required: Boolean = false,
     val schema: Schema? = null,
-    @Contextual val example: JsonElement? = null,
     val examples: Map<String, Example>? = null,
 )
 
