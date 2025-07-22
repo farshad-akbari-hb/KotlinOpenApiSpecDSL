@@ -8,6 +8,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ResponseBuilderTest {
     @Test
@@ -277,6 +278,129 @@ class ResponseBuilderTest {
         val response = responseBuilder.build()
 
         assertEquals(specialDesc, response.description)
+    }
+
+    @Test
+    fun testResponseWithBasicHeader() {
+        val responseBuilder = ResponseBuilder("Success with headers")
+        responseBuilder.jsonContent("User")
+        responseBuilder.header("X-Rate-Limit", "The rate limit", SchemaType.INTEGER)
+
+        val response = responseBuilder.build()
+
+        assertNotNull(response.headers)
+        assertEquals(1, response.headers?.size)
+        val header = response.headers?.get("X-Rate-Limit")
+        assertNotNull(header)
+        assertEquals("The rate limit", header.description)
+        assertEquals(SchemaType.INTEGER, header.schema?.type)
+    }
+
+    @Test
+    fun testResponseWithMultipleHeaders() {
+        val responseBuilder = ResponseBuilder("Success")
+        responseBuilder.header("X-Rate-Limit", "Rate limit", SchemaType.INTEGER, true)
+        responseBuilder.header("X-Rate-Remaining", "Remaining calls", SchemaType.INTEGER)
+        responseBuilder.header("X-Request-ID", "Request identifier", SchemaType.STRING)
+
+        val response = responseBuilder.build()
+
+        assertNotNull(response.headers)
+        assertEquals(3, response.headers?.size)
+        assertTrue(response.headers?.get("X-Rate-Limit")?.required ?: false)
+        assertEquals(SchemaType.STRING, response.headers?.get("X-Request-ID")?.schema?.type)
+    }
+
+    @Test
+    fun testResponseWithHeaderUsingBuilder() {
+        val responseBuilder = ResponseBuilder("Success")
+        responseBuilder.header("X-Custom-Header", "Custom header") {
+            required = true
+            deprecated = true
+            schema {
+                type = SchemaType.STRING
+                format = me.farshad.dsl.spec.SchemaFormat.EMAIL
+            }
+            example("user@example.com")
+        }
+
+        val response = responseBuilder.build()
+
+        val header = response.headers?.get("X-Custom-Header")
+        assertNotNull(header)
+        assertTrue(header.required)
+        assertTrue(header.deprecated)
+        assertEquals(SchemaType.STRING, header.schema?.type)
+        assertEquals(me.farshad.dsl.spec.SchemaFormat.EMAIL, header.schema?.format)
+        assertEquals("user@example.com", header.example?.jsonPrimitive?.content)
+    }
+
+    @Test
+    fun testResponseWithHeaderReference() {
+        val responseBuilder = ResponseBuilder("Success")
+        responseBuilder.header("X-Api-Version", "ApiVersion", "API version header", true)
+
+        val response = responseBuilder.build()
+
+        val header = response.headers?.get("X-Api-Version")
+        assertNotNull(header)
+        assertEquals("API version header", header.description)
+        assertTrue(header.required)
+        assertEquals("#/components/schemas/ApiVersion", header.schema?.ref)
+    }
+
+    @Test
+    fun testResponseWithHeaderExamples() {
+        val responseBuilder = ResponseBuilder("Success")
+        responseBuilder.header("X-Custom-Header") {
+            description = "Custom header with examples"
+            schema {
+                type = SchemaType.STRING
+            }
+            examples {
+                example("example1", "value1", "First example")
+                example("example2") {
+                    summary = "Second example"
+                    value("value2")
+                }
+            }
+        }
+
+        val response = responseBuilder.build()
+
+        val header = response.headers?.get("X-Custom-Header")
+        assertNotNull(header)
+        assertNotNull(header.examples)
+        assertEquals(2, header.examples?.size)
+        assertNull(header.example)
+    }
+
+    @Test
+    fun testResponseWithContentAndHeaders() {
+        val responseBuilder = ResponseBuilder("Complete response")
+        responseBuilder.jsonContent("User")
+        responseBuilder.example(mapOf("id" to "123", "name" to "Test User"))
+        responseBuilder.header("X-Total-Count", "Total number of items", SchemaType.INTEGER)
+        responseBuilder.header("Link", "Pagination links", SchemaType.STRING)
+
+        val response = responseBuilder.build()
+
+        assertNotNull(response.content)
+        assertNotNull(response.headers)
+        assertEquals(2, response.headers?.size)
+        assertNotNull(response.content?.get("application/json")?.example)
+    }
+
+    @Test
+    fun testResponseWithNoContentButHeaders() {
+        val responseBuilder = ResponseBuilder("No content response")
+        responseBuilder.header("Location", "Resource location", SchemaType.STRING, true)
+
+        val response = responseBuilder.build()
+
+        assertNull(response.content)
+        assertNotNull(response.headers)
+        assertEquals(1, response.headers?.size)
     }
 }
 
